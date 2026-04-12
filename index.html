@@ -1,162 +1,888 @@
-<!-- <!doctype html>
-<html lang="en">
-
+<!DOCTYPE html>
+<html lang="zh-CN">
 <head>
-    <meta charset="utf-8">
-    <meta name="author" content="Chris">
-    <meta name="description" content="This page contains all the thins I am learning how to creat as I learn HTML.">
-    <title> my first web page</title>
-    <link rel="icon" href="cat.jpg"
-    type="image/x-icon">
-    <link ref="stylesheet" href="main.css"
-    type="text/css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Final 3D school project</title>
+  <style>
+      body { margin: 0; overflow: hidden; background-color: #74b9ff; font-family: 'Segoe UI', sans-serif; cursor: none; }
+      #crosshair {
+          position: fixed; top: 50%; left: 50%; width: 8px; height: 8px;
+          background: white; border-radius: 50%; transform: translate(-50%, -50%);
+          pointer-events: none; z-index: 10; box-shadow: 0 0 4px rgba(0,0,0,0.8);
+          transition: all 0.2s ease;
+      }
+      #interact-tip {
+          position: fixed; top: 55%; left: 50%; transform: translateX(-50%);
+          color: #f1c40f; font-weight: bold; font-size: 16px; text-shadow: 1px 1px 4px black;
+          display: none; pointer-events: none; z-index: 10;
+      }
+      #temp-msg {
+          position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
+          color: #00ffcc; font-weight: bold; font-size: 22px; text-shadow: 1px 1px 5px black, 0 0 10px rgba(0,255,200,0.5);
+          opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
+          background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 8px;
+      }
+      #hud {
+          position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.85);
+          color: white; padding: 15px 25px; border-radius: 12px; border-left: 6px solid #e74c3c;
+          pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      }
+      #mini-map-container {
+          position: absolute; top: 20px; right: 20px; width: 220px; height: 220px;
+          background: rgba(0, 0, 0, 0.8); border: 2px solid #555; border-radius: 12px;
+          overflow: hidden;
+      }
+      #mini-map-canvas { width: 100%; height: 100%; }
+      #loc-display { font-size: 22px; font-weight: 800; color: #f1c40f; margin-top: 5px; }
+      #instructions {
+          position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+          background: rgba(255, 255, 255, 0.95); padding: 12px 30px;
+          border-radius: 30px; font-size: 14px; color: #111; text-align: center; font-weight: bold;
+          box-shadow: 0 5px 15px rgba(0,0,0,0.3); pointer-events: none;
+      }
+      kbd { background: #222; color: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #555; font-family: monospace; }
+      #start-overlay {
+          position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column;
+          align-items: center; justify-content: center; color: white; z-index: 1000;
+      }
+      #start-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; background: #e74c3c; border: none; border-radius: 8px; color: white; cursor: pointer; transition: 0.2s; }
+      #start-btn:hover { background: #c0392b; transform: scale(1.05); }
+  </style>
 </head>
 <body>
-    <h1> Christopher (Kang) Peng</h1>
 
-    <hr>
 
-    <nav>
-        <ul>
-            <li>
-                <a href="#html">learn html</a>
-            </li>
-            <li>
-                <a href="#vacation"> Solution provider for EMS industry</a>
-            </li>
-        </ul>
-    </nav>
-    <hr> 
-    <section id="html">
+  <div id="start-overlay">
+      <h1 style="font-size: 40px; margin-bottom: 10px;">School Simulator</h1>
+      <p style="font-size: 18px; margin-bottom: 30px; color: #ccc;">By: Mickey Peng</p>
+      <button id="start-btn">Start the adventure</button>
+  </div>
 
-    <h2>I'm ready to learn</h2>
-    <p> This is my first web page.(my son made one before)</p>
 
-    <h3> my daily schedule</h3>
-    <p> let me tell you how:</p>
-        <ol>
-        <li>...I learn more about we dev.</li>
-        <li>...I plan out my</li>
-        <li>...I use resource from <abbr title="Mozilla Developer Network">
-            <a href="https://sellercentral.amazon.ca/ap/signin?clientContext=131-1702105-7128740&openid.pape.max_auth_age=0&openid.return_to=https%3A%2F%2Fsellercentral.amazon.ca%2Fmario%2Frfb%2Forbis-siv%2Fglobal%2Fnode%2Fverification-in-progress%2Frender&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.assoc_handle=sc_ca_amazon_v2&openid.mode=checkid_setup&language=en_CA&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&pageId=sc_amazon_v3_unified&openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&ssoResponse=eyJ6aXAiOiJERUYiLCJlbmMiOiJBMjU2R0NNIiwiYWxnIjoiQTI1NktXIn0.19zZRMiQyEAJkoQW3slQgwFELcuji3lgFiHgK3dlTG_YIBB-V-hl-A.CzTB-Ss9KrDsxQB-.a6l5ROs75j65cOR9-mG98dkAwXtJumaozaDdVdad-25IHa69e9lyEu5No5oONLH4tLLNAjn_xPNVq_m1I1_gksC8wat5y4cDmSdHTYP6GXq7bIDQgkaG6RkZMEWq0qohPX406ELwCH3-wp7seSQoucKngtc1WcT3RaZm7P7TyNdgM9nKC4kZnlTKwzz-FTvlA-iB1lRfakreNJxd4grurpCCkHusSHil2XrHu5FKXou-tC3necGYvCSS165XpdlMM5hOvlBWunnStY125ZksWq0I4t2SfEyQrmKLdaVykYGYDgdpgK_nX1lh_BwN_mLTRI2fBLU9UgPnlG4ZRw_dITVK4Zl0w18WLxRC0-QFNQK5YdmcO5gtelLnuDuhUwSHcahw-SNfpfBmzoeXORuiEIe3EcIp_JesIlWNPPjZmLs9o5GPBuEeKeq11W8qyAWj2H8fxd4CBdg730RaIEVfrq4CFgC9IT1z6eLJe0DXDxcKgA3DCYyejSM1Cm_P3U33oAoD1rcPD0AmEbvbAJycGRhDvwQ7xprjKdALquAZ8VVrmxg09wv2EQ8mGMf3UcvIjxrk1dJBUVlYK2EN-z0yIuPn6Iv6Mg4ObKi5X-zJ_WFMYI3wukoVkAYbGYcpg8XFylnWRj8JGOOKGe92dY3oaxDwBiprTZcBa-y_Z10Hkk8R-ZR9t5g8UbpEEUxe9dnjkcRtShRwonrkWEBR2js4ihwBSfWp4IKIXbYHmrnNMzpB.nRq-CwFSF8DAMuFd499YQA">MDN</a>
-        </abbr></li>
-        </ol>
-    </section>
+  <div id="crosshair"></div>
+  <div id="interact-tip">[ 左键 ] 交互</div>
+  <div id="temp-msg"></div>
+   <div id="hud">
+      <div style="font-size: 13px; color: #aaa;">当前区域检测</div>
+      <div id="loc-display">Loading……</div>
+  </div>
 
-    <hr>
+
+  <div id="mini-map-container">
+      <canvas id="mini-map-canvas" width="220" height="220"></canvas>
+  </div>
+
+
+  <div id="instructions">
+      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 | <kbd>Shift</kbd> 冲刺/离开 | <kbd>点击</kbd> 交互高亮物品
+  </div>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+      let scene, camera, renderer, clock;
+      let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, canJump = false;
+      let velocity = new THREE.Vector3();
+      let direction = new THREE.Vector3();
+      let isStarted = false;
+
+
+      const PLAYER_HEIGHT = 1.6;
+      const MOVE_SPEED_WALK = 140.0;
+      const MOVE_SPEED_SPRINT = 280.0;
+      const PLAYER_RADIUS = 0.4;
     
-    <section id="vacation">
-    <h2> I am also planning a vacation</h2>
-    <p>I've been working hard and <em> really need a getaway</em>.</p>
-    <p>I live in <abbr title="kansas">KS</abbr> so I want visit a beach. </p>
+      const colliders = [];
+      const roomTriggers = [];
+      const animatedDoors = [];
     
-    <h3> place I'd like to visit</h3>
-    <ul>
-    <li>
-        <p>I've heard good things about the Caribbean.</p>
-    </li>
-    <li>
-        <p>I've heard good things about going here:</p></li>
-        <address>
-             Margaritaville island reserve riviera
-             cancún<br>
-             Bahia Petempich Puerto Morelos,
-             Mexico<br>
-                Colonia Morelos, México 77508
-         </address>
-     </li>
-</ul>
-<!-- todo: add more places-->
- <!-- <h3> places I want to avid</h3>
- <d1>
-    <dt> north pole</dt>
-    <dd> I hear this is <strong>cold</strong>!</dd>
-
-    <dt> south ple</dt>
-    <dd> This is also colde</dd>
-
-    <dt> Mountain tops</dt>
-    <dd> There are also code.</dd>
- </d1>
-</section>
-
- <hr>
-&lt;&lt;&lt; &copy; <a href="about.html">Chris Peng</a> &gt;&gt;&gt;
-
-<p>
-    <a href="#"> back to top</a>
-</p>
-</body>
+      const interactableObjects = [];
+      let raycaster = new THREE.Raycaster();
+      let mouseCenter = new THREE.Vector2(0, 0);
+      let currentHover = null;
+      let isUsingFurniture = false;
+      let preUsePosition = new THREE.Vector3();
+      let isSprinting = false;
+      let msgTimeout = null;
 
 
-</html>
- --> -->
+      let textures = {};
 
-<!doctype html>
-    <html lang="en">
-        <head>
-            <meta charset="utf-8">
-            <meta http-equiv="x-ua-compatible" content="ie=edge">
-            <meta name="viewport" content="width=device-width,initial-scale=1.0">
-            <title>CSS Position</title>
-            
-            <link rel="stylesheet" href="style.css">
-        </head>
 
-        <body>
-            <!-- <div class="outer-container">
-                <div class="inner-container">
-                    <div class="box absolute">
-                        <p>Absolute</p>
-                    </div>
+      function showTempMessage(msg) {
+          const el = document.getElementById('temp-msg');
+          el.innerText = msg;
+          el.style.opacity = 1;
+          if(msgTimeout) clearTimeout(msgTimeout);
+          msgTimeout = setTimeout(() => { el.style.opacity = 0; }, 2500);
+      }
 
-                    <div class="box relative">
-                        <p>Relative</p>
-                    </div>
 
-                    <div class="box fixed">
-                        <p>Fixed</p>
-                    </div>
+      function createProceduralTextures() {
+          const canvasBrick = document.createElement('canvas');
+          canvasBrick.width = 256; canvasBrick.height = 256;
+          const ctxB = canvasBrick.getContext('2d');
+          ctxB.fillStyle = '#8B3A3A'; ctxB.fillRect(0,0,256,256);
+          for(let i=0;i<2000;i++){ ctxB.fillStyle=`rgba(0,0,0,${Math.random()*0.15})`; ctxB.fillRect(Math.random()*256,Math.random()*256,2,2); }
+          ctxB.fillStyle = '#5c1f1f';
+          for(let i=0; i<256; i+=32) {
+              let off = (i%64===0)?0:32;
+              for(let j=0; j<256; j+=64) ctxB.fillRect(j+off, i, 60, 28);
+          }
+          textures.brick = new THREE.CanvasTexture(canvasBrick);
+          textures.brick.wrapS = textures.brick.wrapT = THREE.RepeatWrapping;
 
-                    <div class="box sticky">
-                        <p>Sticky</p>
-                    </div>
-                </div>
+
+          const canvasWood = document.createElement('canvas');
+          canvasWood.width = 256; canvasWood.height = 256;
+          const ctxWood = canvasWood.getContext('2d');
+          ctxWood.fillStyle = '#d3a567'; ctxWood.fillRect(0,0,256,256);
+          ctxWood.strokeStyle = '#b88645'; ctxWood.lineWidth = 2;
+          for(let i=0; i<256; i+=16) {
+              ctxWood.beginPath(); ctxWood.moveTo(i, 0); ctxWood.lineTo(i, 256); ctxWood.stroke();
+          }
+          textures.wood = new THREE.CanvasTexture(canvasWood);
+          textures.wood.wrapS = textures.wood.wrapT = THREE.RepeatWrapping;
+
+
+          const canvasTile = document.createElement('canvas');
+          canvasTile.width = 128; canvasTile.height = 128;
+          const ctxT = canvasTile.getContext('2d');
+          ctxT.fillStyle = '#ecf0f1'; ctxT.fillRect(0,0,128,128);
+          ctxT.strokeStyle = '#bdc3c7'; ctxT.lineWidth = 2;
+          ctxT.strokeRect(0,0,64,64); ctxT.strokeRect(64,64,64,64);
+          textures.tile = new THREE.CanvasTexture(canvasTile);
+          textures.tile.wrapS = textures.tile.wrapT = THREE.RepeatWrapping;
+
+
+          const canvasWall = document.createElement('canvas');
+          canvasWall.width = 128; canvasWall.height = 128;
+          const ctxW = canvasWall.getContext('2d');
+          ctxW.fillStyle = '#f8f9fa'; ctxW.fillRect(0,128,128,128);
+          ctxW.fillStyle = '#dcdde1'; ctxW.fillRect(0, 120, 128, 8);
+          textures.innerWall = new THREE.CanvasTexture(canvasWall);
+          textures.innerWall.wrapS = textures.innerWall.wrapT = THREE.RepeatWrapping;
+
+
+          const canvasBathWall = document.createElement('canvas');
+          canvasBathWall.width = 128; canvasBathWall.height = 128;
+          const ctxBW = canvasBathWall.getContext('2d');
+          ctxBW.fillStyle = '#e0f7fa';
+          ctxBW.fillRect(0,0,128,128);
+          ctxBW.strokeStyle = '#b2ebf2'; ctxBW.lineWidth = 2;
+          for(let i=0; i<=128; i+=16) {
+              ctxBW.beginPath(); ctxBW.moveTo(i, 0); ctxBW.lineTo(i, 128); ctxBW.stroke();
+              ctxBW.beginPath(); ctxBW.moveTo(0, i); ctxBW.lineTo(128, i); ctxBW.stroke();
+          }
+          ctxBW.fillStyle = '#b2bec3'; ctxBW.fillRect(0, 120, 128, 8);
+          textures.bathWall = new THREE.CanvasTexture(canvasBathWall);
+          textures.bathWall.wrapS = textures.bathWall.wrapT = THREE.RepeatWrapping;
+      }
+
+
+      function init() {
+          scene = new THREE.Scene();
+          scene.background = new THREE.Color(0x87ceeb);
+          scene.fog = new THREE.Fog(0x87ceeb, 15, 500);
+
+
+          camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500);
+          camera.rotation.order = 'YXZ';
+          camera.position.set(0, PLAYER_HEIGHT, 0);
+
+
+          renderer = new THREE.WebGLRenderer({ antialias: true });
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          renderer.setPixelRatio(window.devicePixelRatio);
+        
+          renderer.toneMapping = THREE.ACESFilmicToneMapping;
+          renderer.toneMappingExposure = 1.2;
+          renderer.shadowMap.enabled = true;
+          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+          document.body.appendChild(renderer.domElement);
+
+
+          clock = new THREE.Clock();
+          createProceduralTextures();
+
+
+          scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+          const sun = new THREE.DirectionalLight(0xffffff, 1.0);
+          sun.position.set(100, 200, 50);
+          sun.castShadow = true;
+          sun.shadow.mapSize.width = 2048;
+          sun.shadow.mapSize.height = 2048;
+          sun.shadow.camera.near = 0.5;
+          sun.shadow.camera.far = 800;
+          sun.shadow.camera.left = -200;
+          sun.shadow.camera.right = 200;
+          sun.shadow.camera.top = 200;
+          sun.shadow.camera.bottom = -200;
+          sun.shadow.bias = -0.0005;
+          scene.add(sun);
+
+
+          buildFullCampus();
+          setupControls();
+        
+          window.addEventListener('resize', onResize);
+          animate();
+      }
+
+
+      function addBox(x, y, z, w, h, d, mat, addToCollider = true, castShadow = true, receiveShadow = true) {
+          const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+          mesh.position.set(x, y, z);
+          mesh.castShadow = castShadow;
+          mesh.receiveShadow = receiveShadow;
+          scene.add(mesh);
+          if (addToCollider) {
+              colliders.push({ minX: x-w/2, maxX: x+w/2, minZ: z-d/2, maxZ: z+d/2, minY: y-h/2, maxY: y+h/2 });
+          }
+          return mesh;
+      }
+
+
+      function addInteractable(x, y, z, w, h, d, mat, actionText, actionMsg, extraData = {}) {
+          const cloneMat = mat.clone();
+          const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloneMat);
+          mesh.position.set(x, y, z);
+          mesh.castShadow = true; mesh.receiveShadow = true;
+          scene.add(mesh);
+        
+          mesh.userData = {
+              interactable: true,
+              actionText: actionText,
+              msg: actionMsg,
+              baseEmissive: cloneMat.emissive ? cloneMat.emissive.getHex() : 0x000000,
+              ...extraData
+          };
+          interactableObjects.push(mesh);
+          return mesh;
+      }
+
+
+      function addFurniture(x, y, z, w, h, d, mat, sitYOffset = 0.8, actionText="sit down", msg="You sat down.") {
+          return addInteractable(x, y, z, w, h, d, mat, actionText, msg, { type: 'sit', usePos: new THREE.Vector3(x, y + sitYOffset, z) });
+      }
+
+
+      function createDoor(x, z, facing, doorW) {
+          const doorMat = new THREE.MeshPhongMaterial({ color: 0x4a3b32 });
+          const group = new THREE.Group();
+        
+          let pivotX = x, pivotZ = z;
+          let meshX = 0, meshZ = 0;
+          let w = doorW, d = 0.2;
+
+
+          if(facing === 'N' || facing === 'S') {
+              pivotX = x - doorW/2; meshX = doorW/2;
+          } else {
+              pivotZ = z - doorW/2; meshZ = doorW/2;
+              w = 0.2; d = doorW;
+          }
+
+
+          group.position.set(pivotX, 0, pivotZ);
+          const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(w===0.2?0.2:doorW, 4.45, w===0.2?doorW:0.2), doorMat);
+          doorMesh.position.set(meshX, 2.28, meshZ);
+          doorMesh.castShadow = true;
+          group.add(doorMesh);
+          scene.add(group);
+
+
+          let openRot = (facing === 'N') ? Math.PI/2 : (facing === 'S') ? -Math.PI/2 : (facing === 'E') ? -Math.PI/2 : Math.PI/2;
+          animatedDoors.push({ group: group, targetRot: 0, currentRot: 0, openRot: openRot, px: x, pz: z, triggerDist: 4.5 });
+      }
+
+
+      function createStallDoor(x, z, facing, doorW, colorHex) {
+          const doorMat = new THREE.MeshPhongMaterial({ color: colorHex });
+          const group = new THREE.Group();
+          let pivotX = x, pivotZ = z;
+          let meshX = 0, meshZ = 0;
+          let w = doorW, d = 0.1;
+
+
+          if(facing === 'N' || facing === 'S') {
+              pivotX = x - doorW/2; meshX = doorW/2;
+          } else {
+              pivotZ = z - doorW/2; meshZ = doorW/2;
+              w = 0.1; d = doorW;
+          }
+
+
+          group.position.set(pivotX, 0, pivotZ);
+          const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(w===0.1?0.1:doorW, 2.6, w===0.1?doorW:0.1), doorMat);
+          doorMesh.position.set(meshX, 1.5, meshZ);
+          doorMesh.castShadow = true;
+          group.add(doorMesh);
+          scene.add(group);
+
+
+          let openRot = (facing === 'N') ? Math.PI/2 : (facing === 'S') ? -Math.PI/2 : (facing === 'E') ? -Math.PI/2 : Math.PI/2;
+          animatedDoors.push({ group: group, targetRot: 0, currentRot: 0, openRot: openRot, px: x, pz: z, triggerDist: 2.5 });
+      }
+
+
+      function addCeilingLight(x, z, w, d, h) {
+          const lightMat = new THREE.MeshBasicMaterial({color: 0xffffff});
+          addBox(x, h - 0.05, z, w*0.3, 0.1, d*0.3, lightMat, false, false, false);
+      }
+
+
+      function buildGlobalRoof() {
+          const extRoofMat = new THREE.MeshPhongMaterial({color: 0x2d3436});
+          addBox(0, 5.9, -40, 54, 0.4, 204, extRoofMat, false, true, true);
+          addBox(0, 5.9, 0, 184, 0.4, 44, extRoofMat, false, true, true);
+      }
+
+
+      function buildHollowRoom(x, z, w, d, roomName, type, doorFacing) {
+          const h = 5.5;
+          const wt = 0.8;
+          const doorW = 3.5;
+
+
+          let innerTex = textures.innerWall.clone();
+          if (type.includes('bath')) innerTex = textures.bathWall.clone();
+        
+          const floorMat = new THREE.MeshPhongMaterial({ map: (type.includes('bath')||type==='corridor') ? textures.tile : textures.wood });
+          floorMat.map.repeat.set(w/4, d/4);
+          const roofMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x222222 });
+
+
+          roomTriggers.push({ minX: x-w/2, maxX: x+w/2, minZ: z-d/2, maxZ: z+d/2, name: roomName, type: type });
+
+
+          const floor = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.1, d - 0.1), floorMat);
+          floor.rotation.x = -Math.PI/2; floor.position.set(x, 0.05, z); floor.receiveShadow = true; scene.add(floor);
+        
+          addBox(x, 5.6, z, w + wt*2 - 0.1, 0.2, d + wt*2 - 0.1, roofMat, false, false, false);
+        
+          const buildWall = (cx, cz, ww, wd, isDoorWall) => {
+              const currentInnerTex = innerTex.clone();
+              currentInnerTex.repeat.set(Math.max(ww, wd) / 4, h / 4);
+              const wallMat = new THREE.MeshPhongMaterial({ map: currentInnerTex });
+
+
+              const shrinkW = ww > wd ? ww - 0.02 : ww;
+              const shrinkD = wd > ww ? wd - 0.02 : wd;
+
+
+              if (!isDoorWall) {
+                  addBox(cx, h/2, cz, shrinkW, h, shrinkD, wallMat);
+              } else {
+                  const isNS = (ww > wd);
+                  const sideL = isNS ? (ww - doorW)/2 : ww;
+                  const sideW = isNS ? ww : (wd - doorW)/2;
                 
-
-            </div> -->
-
-            <button class="social">rocket</button>
-
-
-            <section id="one">
-                <header class="blue">Header one</header>
-                <h2>One</h2>
-            </section>
-            <section id="two">
-                <header class="red">Header two</header>
-                <h2>Two</h2>
-            </section>
+                  if (isNS) {
+                      addBox(cx - ww/2 + sideL/2, h/2, cz, sideL - 0.02, h, shrinkD, wallMat);
+                      addBox(cx + ww/2 - sideL/2, h/2, cz, sideL - 0.02, h, shrinkD, wallMat);
+                      addBox(cx, h - 0.5, cz, doorW - 0.02, 1, shrinkD, wallMat);
+                  } else {
+                      addBox(cx, h/2, cz - wd/2 + sideW/2, shrinkW, h, sideW - 0.02, wallMat);
+                      addBox(cx, h/2, cz + wd/2 - sideW/2, shrinkW, h, sideW - 0.02, wallMat);
+                      addBox(cx, h - 0.5, cz, shrinkW, 1, doorW - 0.02, wallMat);
+                  }
+                  createDoor(cx, cz, doorFacing, doorW);
+              }
+          };
 
 
-            <section id="insert">
-                <header class="main-header">
-                    <h1></h1>
-                </header>
-               
-            </section>
+          buildWall(x, z - d/2, w, wt, doorFacing === 'N');
+          buildWall(x, z + d/2, w, wt, doorFacing === 'S');
+          buildWall(x - w/2, z, wt, d, doorFacing === 'W');
+          buildWall(x + w/2, z, wt, d, doorFacing === 'E');
 
 
-            <section id="three">
-                <header class="green">Header three</header>
-                <h2>Three</h2>
-            </section>
-            <footer>
-                <a href="#one">one</a>
-                <a href="#two">Two</a>
-                <a href="#three">Three</a>
-            </footer>
-        </body>
-    </html>
+          populateInterior(x, z, w, d, type, doorFacing);
+      }
 
 
+      function populateInterior(x, z, w, d, type, doorFacing) {
+          const woodMat = new THREE.MeshPhongMaterial({color: 0x8d6e63});
+          const metalMat = new THREE.MeshPhongMaterial({color: 0x7f8c8d});
+          const whiteMat = new THREE.MeshPhongMaterial({color: 0xffffff});
+          const blackMat = new THREE.MeshPhongMaterial({color: 0x2d3436});
+          const chairMat = new THREE.MeshPhongMaterial({color: 0x34495e});
+          const greenMat = new THREE.MeshPhongMaterial({color: 0x27ae60});
+
+
+          if (type.includes('bath')) {
+              const signMat = new THREE.MeshPhongMaterial({color: 0x27ae60});
+              const msg = type === 'boys_bath' ? "Boy's bathroom (Boys)" : "Girl's bathroom (Girls)";
+              let sz = z, sx = x, sw = 1.5, sh = 0.6, sd = 0.1;
+            
+              if (doorFacing === 'S') { sz = z + d/2 + 0.42; }
+              else if (doorFacing === 'N') { sz = z - d/2 - 0.42; }
+              else if (doorFacing === 'E') { sx = x + w/2 + 0.42; sw = 0.1; sd = 1.5; }
+              else if (doorFacing === 'W') { sx = x - w/2 - 0.42; sw = 0.1; sd = 1.5; }
+            
+              addInteractable(sx, 4.8, sz, sw, sh, sd, signMat, "Read the sign", msg);
+          }
+
+
+          const addTrash = (px, pz) => {
+              addInteractable(px, 0.6, pz, 0.8, 1.2, 0.8, new THREE.MeshPhongMaterial({color: 0x2c3e50}), "Throwing away trash", "You throwing away trash");
+          };
+          const addPlant = (px, pz) => {
+              addBox(px, 0.5, pz, 1, 1, 1, whiteMat, false);
+              addInteractable(px, 1.8, pz, 1.5, 1.6, 1.5, greenMat, "Watering", "After watering the plant, it looks more vibrant");
+          };
+
+
+          if (type === 'class') {
+              addBox(x, 0.9, z - d/2 + 2.5, 4, 0.1, 2, woodMat, false);
+              addBox(x - 1.9, 0.45, z - d/2 + 2.5, 0.1, 0.9, 1.8, woodMat, false);
+              addBox(x + 1.9, 0.45, z - d/2 + 2.5, 0.1, 0.9, 1.8, woodMat, false);
+              addBox(x, 0.45, z - d/2 + 1.6, 3.8, 0.9, 0.1, woodMat, false);
+            
+              const pcMat = new THREE.MeshPhongMaterial({color: 0x2d3436, emissive: 0x000000});
+              addInteractable(x, 1.3, z - d/2 + 2.8, 0.8, 0.6, 0.1, pcMat, "Operating a computer", "You open a tab");
+              addBox(x, 1.0, z - d/2 + 2.8, 0.2, 0.3, 0.2, blackMat, false);
+            
+              addInteractable(x + 1.5, 1.3, z - d/2 + 2.5, 0.6, 0.6, 0.6, new THREE.MeshPhongMaterial({color: 0x3498db}), "spin", "The globe was rotated");
+
+
+              addFurniture(x, 0.45, z - d/2 + 1.0, 1, 0.1, 1, blackMat, 0.5, "sit down", "You sat down");
+              addBox(x, 0.9, z - d/2 + 0.6, 1, 0.8, 0.1, blackMat, false);
+            
+              addInteractable(x, 3, z - d/2 + 0.5, 10, 3.5, 0.1, whiteMat, "Erasing the blackboard", "You erased the blackboard");
+            
+              addInteractable(x, 5, z - d/2 + 0.55, 1.2, 1.2, 0.1, new THREE.MeshPhongMaterial({color: 0xecf0f1}), "Check the time", "Tick-tock, tick-tock, there are still 15 minutes until class ends");
+              addInteractable(x - 4, 5, z - d/2 + 0.55, 1, 0.8, 0.5, blackMat, "Listen to the radio", "Sorry to interrupt, we won't be able to go outside because there's an activity.");
+
+
+              addTrash(x - 4, z - d/2 + 2);
+
+
+              const startX = x - w/2 + 4; const startZ = z - d/2 + 7;
+              const cols = Math.floor((w-6)/4);
+              for (let r = 0; r < 3; r++) {
+                  for (let c = 0; c < cols; c++) {
+                      let dx = startX + c * 4; let dz = startZ + r * 3.5;
+                      addInteractable(dx, 0.8, dz, 2.2, 0.1, 1.5, woodMat, "Check the desks", "There's a math book on the desk");
+                      addBox(dx, 0.4, dz, 2.0, 0.8, 1.3, metalMat, false);
+                      addFurniture(dx, 0.45, dz + 1.3, 1.0, 0.1, 1.0, chairMat, 0.5, "Listen to the lecture", "Sat down and learning");
+                      addBox(dx, 0.9, dz + 1.6, 1.0, 0.8, 0.1, chairMat, false);
+                      addBox(dx - 0.4, 0.225, dz + 0.8, 0.1, 0.45, 0.1, metalMat, false);
+                      addBox(dx + 0.4, 0.225, dz + 0.8, 0.1, 0.45, 0.1, metalMat, false);
+                      addBox(dx - 0.4, 0.225, dz + 1.6, 0.1, 0.45, 0.1, metalMat, false);
+                      addBox(dx + 0.4, 0.225, dz + 1.6, 0.1, 0.45, 0.1, metalMat, false);
+                  }
+              }
+          }
+          else if (type === 'boys_bath') {
+              addBox(x - w/2 + 2, 1.2, z, 1.5, 0.8, d-6, whiteMat, false);
+              addInteractable(x - w/2 + 2.5, 1.5, z, 0.5, 0.2, 0.5, metalMat, "Wash hands", "Splash... washed hands carefully with hand sanitizer.");
+              addInteractable(x - w/2 + 1.1, 2.8, z, 0.1, 2.5, d-6, new THREE.MeshPhongMaterial({color: 0x81ecec}), "Looking in the mirror", "Looks good");
+              addInteractable(x - w/2 + 1.2, 1.8, z - d/2 + 3, 0.5, 0.6, 0.4, metalMat, "blow dry", "Whoosh... The strong hot air dried your hands.");
+            
+              for (let i = 0; i < 3; i++) {
+                  let pz = z - d/2 + 4 + i*2.5;
+                  addInteractable(x + w/2 - 1, 1.3, pz, 0.6, 1.2, 0.8, whiteMat, "Use", "Automatic sensor flushing... Splash!");
+                  addBox(x + w/2 - 1.5, 1.6, pz + 1.25, 2, 2.2, 0.1, new THREE.MeshPhongMaterial({color: 0x3498db}), false);
+              }
+            
+              let stallZ = z + d/2 - 2.5;
+              addBox(x + w/2 - 2, 1.8, stallZ - 1.5, 4, 3.5, 0.1, new THREE.MeshPhongMaterial({color: 0x3498db}), false);
+              createStallDoor(x + w/2 - 4, stallZ, 'W', 3, 0x3498db);
+              addFurniture(x + w/2 - 1, 0.4, stallZ, 0.6, 0.4, 0.8, whiteMat, 0.6, "Go to the toilet", "Using the toilet");
+              addInteractable(x + w/2 - 1, 0.9, stallZ - 0.3, 0.8, 0.6, 0.3, whiteMat, "flushing", "Press the flush button, and the vortex will take everything away");
+          }
+          else if (type === 'girls_bath') {
+              addBox(x - w/2 + 2, 1.2, z, 1.5, 0.8, d-6, whiteMat, false);
+              addInteractable(x - w/2 + 2.5, 1.5, z, 0.5, 0.2, 0.5, metalMat, "Wash hands", "Splash... Washing away the day's fatigue.");
+              addInteractable(x - w/2 + 1.1, 2.8, z, 0.1, 2.5, d-6, new THREE.MeshPhongMaterial({color: 0x81ecec}), "Looking in the mirror", "My hairstyle is perfect today.");
+            
+              for (let i = 0; i < 4; i++) {
+                  let pz = z - d/2 + 3.5 + i*2.8;
+                  addBox(x + w/2 - 2.5, 1.8, pz - 1.4, 5, 3.5, 0.1, new THREE.MeshPhongMaterial({color: 0xf06292}), false);
+                  createStallDoor(x + w/2 - 4, pz, 'W', 2.8, 0xf06292);
+                  addFurniture(x + w/2 - 1, 0.4, pz, 0.6, 0.4, 0.8, whiteMat, 0.6, "Use", "The cubicle was very quiet");
+                  addInteractable(x + w/2 - 1, 0.9, pz - 0.3, 0.8, 0.6, 0.3, whiteMat, "Flushing", "Splash...");
+              }
+          }
+          else if (type === 'snack') {
+              addInteractable(x - w/2 + 2.5, 2, z - d/2 + 3, 2.5, 4, 2.5, new THREE.MeshPhongMaterial({color: 0xe74c3c}), "Buy a drink", "Click... A can of ice-cold Coke fell out!");
+              addInteractable(x - w/2 + 2.5, 2, z - d/2 + 6, 2.5, 4, 2.5, new THREE.MeshPhongMaterial({color: 0x3498db}), "Buy snacks", "Click... A bag of potato chips fell out!");
+              addBox(x - w/2 + 2.5, 1, z - d/2 + 9, 2.5, 2, 2.5, whiteMat, false);
+              addInteractable(x - w/2 + 2.5, 2.3, z - d/2 + 9, 1.5, 0.6, 1.5, blackMat, "heating", "Buzz buzz buzz... Ding! The hot dog is heated up.");
+              addInteractable(x - w/2 + 2.5, 2.2, z - d/2 + 11, 1, 0.8, 1, new THREE.MeshPhongMaterial({color: 0x95a5a6}), "Coffee", "Hmm... It's broken.");
+            
+              for (let i=0; i<2; i++) {
+                  let cx = x + 3; let cz = z - 2 + i*6;
+                  addBox(cx, 1, cz, 3, 0.1, 3, woodMat, false);
+                  addBox(cx, 0.5, cz, 0.5, 1, 0.5, metalMat, false);
+                  addFurniture(cx - 2, 0.45, cz, 0.8, 0.1, 0.8, whiteMat, 0.6, "Rest", "Sat down and rest");
+                  addBox(cx - 2, 0.9, cz - 0.4, 0.8, 0.8, 0.1, whiteMat, false);
+                  addFurniture(cx + 2, 0.45, cz, 0.8, 0.1, 0.8, whiteMat, 0.6, "Rest", "Sat down and thinking...");
+                  addBox(cx + 2, 0.9, cz + 0.4, 0.8, 0.8, 0.1, whiteMat, false);
+              }
+              addTrash(x - w/2 + 2, z - d/2 + 13);
+          }
+          else if (type === 'office') {
+              for (let i = -1; i <= 1; i+=2) {
+                  for (let j = -1; j <= 1; j+=2) {
+                      let ox = x + i*4; let oz = z + j*4;
+                      addBox(ox, 1.0, oz, 4, 0.1, 2.5, new THREE.MeshPhongMaterial({color: 0xecf0f1}), false);
+                      addBox(ox - 1.8, 0.5, oz, 0.1, 1, 2.3, metalMat, false);
+                      addBox(ox + 1.8, 0.5, oz, 0.1, 1, 2.3, metalMat, false);
+                    
+                      addInteractable(ox, 1.4, oz - 0.5, 1.2, 0.7, 0.1, new THREE.MeshPhongMaterial({color: 0x2d3436}), "Check grades", "Opened the academic affairs system, and the screen was filled with transcripts...");
+                      addBox(ox, 1.1, oz - 0.5, 0.2, 0.3, 0.2, blackMat, false);
+                      addFurniture(ox, 0.45, oz + 1.2, 1.0, 0.1, 1.0, blackMat, 0.6, "Sit", "Sit in a comfortable ergonomic chair.");
+                      addBox(ox, 0.9, oz + 1.6, 1.0, 0.8, 0.1, blackMat, false);
+                  }
+              }
+              addInteractable(x - w/2 + 2, 2, z - d/2 + 2, 2, 4, 1.5, metalMat, "Open", "It's locked, there must be something inside");
+              addInteractable(x - w/2 + 2, 1.2, z + d/2 - 2, 1.5, 0.8, 1.5, whiteMat, "print", "buzz... you have no paper");
+              addPlant(x + w/2 - 2, z - d/2 + 2);
+          }
+          else if (type === 'library') {
+              addBox(x - w/2 + 4, 1.2, z - d/2 + 6, 6, 1.2, 2.5, woodMat, false);
+              addInteractable(x - w/2 + 4, 1.9, z - d/2 + 6, 1.2, 0.7, 0.1, new THREE.MeshPhongMaterial({color: 0x2d3436}), "Check out", "You check out the book");
+              addFurniture(x - w/2 + 4, 0.6, z - d/2 + 8, 1, 0.8, 1, blackMat, 0.6, "Go on duty", "Being an administrator carries a heavy responsibility...");
+            
+              for (let i = -1; i <= 2; i++) {
+                  let sx = x + i*6;
+                  addBox(sx, 2.5, z - 3, 1.5, 5, 14, woodMat, false);
+                  addInteractable(sx, 1.5, z - 3, 1.6, 0.8, 13.5, new THREE.MeshPhongMaterial({color: 0xc0392b}), "Read", "《History of Canada》");
+                  addInteractable(sx, 3.5, z - 3, 1.6, 0.8, 13.5, new THREE.MeshPhongMaterial({color: 0x2980b9}), "Read", "《Math》");
+              }
+              addBox(x, 1, z + 10, 16, 0.2, 4, woodMat, false);
+              for(let i=-2; i<=2; i++) {
+                  addFurniture(x + i*3, 0.45, z + 12.5, 1.0, 0.1, 1.0, chairMat, 0.5, "Read", "Sit down and read a book quietly");
+                  addBox(x + i*3, 0.9, z + 12.9, 1.0, 0.8, 0.1, chairMat, false);
+              }
+          }
+          else if (type === 'gym') {
+              addInteractable(x - w/2 + 5, 0.5, z, 10, 1, d - 2, new THREE.MeshPhongMaterial({color: 0xd35400}), "Go on stage", "Standing on the stage, imagine there are thousands of audience members below");
+              addInteractable(x - w/2 + 8, 1.5, z, 0.1, 1, 0.1, metalMat, "Testing the microphone", "Tapped the microphone: Hello? Hello? Sound check...");
+
+
+              const bMat = new THREE.MeshPhongMaterial({color: 0x7f8c8d});
+              addBox(x + w/2 - 2, 0.5, z, 4, 1, d - 8, bMat, false);
+              addFurniture(x + w/2 - 1, 1.5, z, 2, 1, d - 8, bMat, 0.5, "Watch", "Sit in the stands and cheer for your favorite team!");
+            
+              addBox(x + 5, 0.08, z, 20, 0.01, 0.5, whiteMat, false);
+              const hoopMat = new THREE.MeshPhongMaterial({color: 0xbdc3c7});
+              addBox(x + 5, 3, z - d/2 + 2, 0.4, 6, 0.4, hoopMat, false);
+              addInteractable(x + 5, 4.5, z - d/2 + 3, 3, 2, 0.1, whiteMat, "Shoot", "Three-pointer! Swish! Swish through the net!");
+              addBox(x + 5, 3, z + d/2 - 2, 0.4, 6, 0.4, hoopMat, false);
+              addInteractable(x + 5, 4.5, z + d/2 - 3, 3, 2, 0.1, whiteMat, "dunk", "Leaped into the air! Thud! A beautiful dunk!");
+          }
+      }
+
+
+      function buildFullCampus() {
+          const grass = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshPhongMaterial({color: 0x4caf50}));
+          grass.rotation.x = -Math.PI/2; grass.receiveShadow = true; scene.add(grass);
+
+
+          const corrFloorMat = new THREE.MeshPhongMaterial({map: textures.tile});
+          corrFloorMat.map.repeat.set(10, 10);
+        
+          const floorV = new THREE.Mesh(new THREE.PlaneGeometry(12, 100), corrFloorMat);
+          floorV.rotation.x = -Math.PI/2; floorV.position.set(0, 0.02, -58); floorV.receiveShadow = true; scene.add(floorV);
+          addCeilingLight(0, -50, 12, 100, 5.5);
+
+
+          const floorH = new THREE.Mesh(new THREE.PlaneGeometry(180, 16), corrFloorMat);
+          floorH.rotation.x = -Math.PI/2; floorH.position.set(0, 0.02, 0); floorH.receiveShadow = true; scene.add(floorH);
+          addCeilingLight(0, 0, 180, 16, 5.5);
+
+
+          buildHollowRoom(0, -120, 50, 40, "Gym (Gym)", "gym", "S");
+          buildHollowRoom(-19, -85, 26, 30, "West Classroom 1", "class", "E");
+          buildHollowRoom(-19, -55, 26, 30, "West Classroom 2", "class", "E");
+          buildHollowRoom(19, -85, 26, 30, "East Classroom 1", "class", "W");
+          buildHollowRoom(19, -55, 26, 30, "East Classroom 2", "class", "W");
+
+
+          const glassMat = new THREE.MeshPhongMaterial({color: 0x87ceeb, transparent: true, opacity: 0.4});
+          const frameMat = new THREE.MeshPhongMaterial({color: 0x222222});
+        
+          addBox(-6, 2.75, -24, 0.4, 5.5, 32, glassMat, true);
+          addBox(-6, 0.25, -24, 0.6, 0.5, 32, frameMat, false);
+          addBox(-6, 5.25, -24, 0.6, 0.5, 32, frameMat, false);
+          for(let i=-40; i<=-8; i+=4) addBox(-6, 2.75, i, 0.6, 5.5, 0.4, frameMat, false);
+        
+          addBox(6, 2.75, -24, 0.4, 5.5, 32, glassMat, true);
+          addBox(6, 0.25, -24, 0.6, 0.5, 32, frameMat, false);
+          addBox(6, 5.25, -24, 0.6, 0.5, 32, frameMat, false);
+          for(let i=-40; i<=-8; i+=4) addBox(6, 2.75, i, 0.6, 5.5, 0.4, frameMat, false);
+
+
+          buildHollowRoom(-76, -16, 28, 16, "Snack Room (Snack Room)", "snack", "S");
+          buildHollowRoom(-48, -16, 28, 16, "Boys’ Bathroom (Boys Bath)", "boys_bath", "S");
+          buildHollowRoom(-20, -16, 28, 16, "Girls’ Bathroom (Girls Bath)", "girls_bath", "S");
+          buildHollowRoom(-70, 16, 40, 16, "West classroom 3", "class", "N");
+          buildHollowRoom(-35, 16, 30, 16, "Office (Office)", "office", "N");
+
+
+          addBox(20, 2.75, -8, 28, 5.5, 0.8, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          buildHollowRoom(48, -16, 28, 16, "East Classroom 3", "class", "S");
+          buildHollowRoom(76, -16, 28, 16, "East Classroom 4", "class", "S");
+          buildHollowRoom(35, 16, 30, 16, "Admin (Admin)", "office", "N");
+          buildHollowRoom(70, 16, 40, 16, "East Classroom 5", "class", "N");
+
+
+          buildHollowRoom(0, 28, 40, 40, "Library (Library)", "library", "N");
+
+
+          addBox(-90, 2.75, -5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          addBox(-90, 2.75, 5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          addBox(-90, 4.5, 0, 0.8, 1.5, 4, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          createDoor(-90, 0, 'W', 4);
+        
+          addBox(90, 2.75, -5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          addBox(90, 2.75, 5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          addBox(90, 4.5, 0, 0.8, 1.5, 4, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
+          createDoor(90, 0, 'E', 4);
+
+
+          addInteractable(6.5, 1.5, -6.5, 1.2, 3, 1.2, new THREE.MeshPhongMaterial({color: 0xffffff}), "Drink water", "Gulp gulp gulp... a glass of ice water is so refreshing!");
+          addBox(6.5, 3.5, -6.5, 0.8, 1, 0.8, new THREE.MeshPhongMaterial({color: 0x3498db, transparent: true, opacity: 0.8}), false);
+
+
+          for(let i=0; i<15; i++) {
+              addInteractable(20 + i*3, 2, 5.5, 1.5, 4, 0.8, new THREE.MeshPhongMaterial({color: 0x2980b9}), "Open locker", "It's locked");
+              if (i % 5 === 0) {
+                  addInteractable(20 + i*3, 2, -5.8, 0.6, 1, 0.4, new THREE.MeshPhongMaterial({color: 0xe74c3c}), "Check", "Dry powder fire extinguisher, pointer in the green zone, safe and compliant");
+              }
+          }
+        
+          addInteractable(-22, 3, -83, 1.5, 0.8, 0.1, new THREE.MeshPhongMaterial({color: 0x34495e}), "Read", "Grade-");
+          addInteractable(22, 3, -83, 1.5, 0.8, 0.1, new THREE.MeshPhongMaterial({color: 0x34495e}), "Read", "Grade-");
+          addInteractable(0, 3, 5, 3, 1.5, 0.1, new THREE.MeshPhongMaterial({color: 0xf1c40f}), "See the announcement", "The first class is language");
+
+
+          buildGlobalRoof();
+      }
+
+
+      function setupControls() {
+          document.getElementById('start-btn').addEventListener('click', () => {
+              document.body.requestPointerLock();
+          });
+
+
+          document.addEventListener('pointerlockchange', () => {
+              isStarted = document.pointerLockElement === document.body;
+              document.getElementById('start-overlay').style.display = isStarted ? 'none' : 'flex';
+              if (!isStarted) {
+                  moveForward = moveBackward = moveLeft = moveRight = isSprinting = false;
+              }
+          });
+
+
+          document.addEventListener('keydown', (e) => {
+              if (!isStarted) return;
+              switch(e.code) {
+                  case 'KeyW': case 'ArrowUp': moveForward = true; break;
+                  case 'KeyS': case 'ArrowDown': moveBackward = true; break;
+                  case 'KeyA': case 'ArrowLeft': moveLeft = true; break;
+                  case 'KeyD': case 'ArrowRight': moveRight = true; break;
+                  case 'Space': if(canJump && !isUsingFurniture) { velocity.y = 12.0; canJump = false; } break;
+                  case 'ShiftLeft': case 'ShiftRight':
+                      if (isUsingFurniture) {
+                          isUsingFurniture = false;
+                          camera.position.copy(preUsePosition);
+                      } else {
+                          isSprinting = true;
+                      }
+                      break;
+              }
+          });
+          document.addEventListener('keyup', (e) => {
+              switch(e.code) {
+                  case 'KeyW': case 'ArrowUp': moveForward = false; break;
+                  case 'KeyS': case 'ArrowDown': moveBackward = false; break;
+                  case 'KeyA': case 'ArrowLeft': moveLeft = false; break;
+                  case 'KeyD': case 'ArrowRight': moveRight = false; break;
+                  case 'ShiftLeft': case 'ShiftRight': isSprinting = false; break;
+              }
+          });
+
+
+          document.addEventListener('mousedown', (e) => {
+              if (isStarted && currentHover && !isUsingFurniture && e.button === 0) {
+                  const action = currentHover.userData.type;
+                
+                  if (action === 'sit') {
+                      isUsingFurniture = true;
+                      preUsePosition.copy(camera.position);
+                      camera.position.copy(currentHover.userData.usePos);
+                      velocity.set(0,0,0);
+                      showTempMessage(currentHover.userData.msg);
+                  } else {
+                      showTempMessage(currentHover.userData.msg);
+                      currentHover.position.y -= 0.05;
+                      setTimeout(() => { currentHover.position.y += 0.05; }, 100);
+                  }
+              }
+          });
+        
+          document.addEventListener('mousemove', (e) => {
+              if (isStarted) {
+                  camera.rotation.y -= e.movementX * 0.002;
+                  camera.rotation.x -= e.movementY * 0.002;
+                  camera.rotation.x = Math.max(-1.5, Math.min(1.5, camera.rotation.x));
+              }
+          });
+      }
+
+
+      function checkCollision(nx, nz) {
+          for (let c of colliders) {
+              if (nx + PLAYER_RADIUS > c.minX && nx - PLAYER_RADIUS < c.maxX &&
+                  nz + PLAYER_RADIUS > c.minZ && nz - PLAYER_RADIUS < c.maxZ) {
+                  if(camera.position.y > c.minY && camera.position.y - PLAYER_HEIGHT < c.maxY) {
+                      return true;
+                  }
+              }
+          }
+          return false;
+      }
+
+
+      function drawMiniMap() {
+          const canvas = document.getElementById('mini-map-canvas');
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, 220, 220);
+          const scale = 0.7; const ox = 110; const oz = 120;
+
+
+          ctx.fillStyle = 'rgba(150, 150, 150, 0.6)';
+          roomTriggers.forEach(r => {
+              ctx.fillRect(ox + r.minX*scale, oz + r.minZ*scale, (r.maxX-r.minX)*scale, (r.maxZ-r.minZ)*scale);
+              ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+              ctx.strokeRect(ox + r.minX*scale, oz + r.minZ*scale, (r.maxX-r.minX)*scale, (r.maxZ-r.minZ)*scale);
+          });
+        
+          const px = ox + camera.position.x * scale;
+          const pz = oz + camera.position.z * scale;
+          ctx.save();
+          ctx.translate(px, pz);
+          ctx.rotate(-camera.rotation.y);
+          ctx.beginPath();
+          ctx.moveTo(0, -8); ctx.lineTo(5, 5); ctx.lineTo(-5, 5);
+          ctx.fillStyle = '#2ecc71'; ctx.fill();
+          ctx.restore();
+      }
+
+
+      function animate() {
+          requestAnimationFrame(animate);
+          const dt = Math.min(clock.getDelta(), 0.1);
+
+
+          if (isStarted) {
+              let targetFov = isUsingFurniture ? 60 : (isSprinting ? 95 : 75);
+              camera.fov += (targetFov - camera.fov) * 0.1;
+              camera.updateProjectionMatrix();
+
+
+              raycaster.setFromCamera(mouseCenter, camera);
+              const intersects = raycaster.intersectObjects(interactableObjects);
+              const crosshair = document.getElementById('crosshair');
+              const interactTip = document.getElementById('interact-tip');
+
+
+              if (intersects.length > 0 && intersects[0].distance < 4 && !isUsingFurniture) {
+                  if (currentHover !== intersects[0].object) {
+                      if (currentHover) currentHover.material.emissive.setHex(currentHover.userData.baseEmissive);
+                      currentHover = intersects[0].object;
+                      currentHover.material.emissive.setHex(0x555555);
+                  }
+                
+                  crosshair.style.borderColor = '#f1c40f';
+                  crosshair.style.transform = 'translate(-50%, -50%) scale(1.5)';
+                  interactTip.innerText = `[ Left click ] ${currentHover.userData.actionText}`;
+                  interactTip.style.display = 'block';
+              } else {
+                  if (currentHover) {
+                      currentHover.material.emissive.setHex(currentHover.userData.baseEmissive);
+                      currentHover = null;
+                  }
+                  crosshair.style.borderColor = 'white';
+                  crosshair.style.transform = 'translate(-50%, -50%) scale(1)';
+                  interactTip.style.display = 'none';
+              }
+
+
+              if (!isUsingFurniture) {
+                  velocity.y -= 30 * dt;
+                  camera.position.y += velocity.y * dt;
+                  if (camera.position.y < PLAYER_HEIGHT) {
+                      camera.position.y = PLAYER_HEIGHT;
+                      velocity.y = 0; canJump = true;
+                  }
+
+
+                  direction.z = Number(moveForward) - Number(moveBackward);
+                  direction.x = Number(moveRight) - Number(moveLeft);
+                  direction.normalize();
+
+
+                  if (moveForward || moveBackward || moveLeft || moveRight) {
+                      const camDir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
+                      camDir.y = 0; camDir.normalize();
+                      const camRight = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0,1,0)).normalize();
+                    
+                      const speed = isSprinting ? MOVE_SPEED_SPRINT : MOVE_SPEED_WALK;
+                      const moveVec = new THREE.Vector3().addScaledVector(camDir, direction.z).addScaledVector(camRight, direction.x);
+                    
+                      if (moveVec.lengthSq() > 0) {
+                          moveVec.normalize().multiplyScalar(speed * dt * 0.1);
+                          if (!checkCollision(camera.position.x + moveVec.x, camera.position.z)) camera.position.x += moveVec.x;
+                          if (!checkCollision(camera.position.x, camera.position.z + moveVec.z)) camera.position.z += moveVec.z;
+                      }
+                  }
+              } else {
+                  interactTip.innerText = "[ Shift ] Stand up / Leave";
+                  interactTip.style.display = 'block';
+              }
+
+
+              animatedDoors.forEach(door => {
+                  const trigDist = door.triggerDist || 4.5;
+                  const dist = Math.hypot(camera.position.x - door.px, camera.position.z - door.pz);
+                  door.targetRot = (dist < trigDist) ? door.openRot : 0;
+                  door.currentRot += (door.targetRot - door.currentRot) * 0.1;
+                  door.group.rotation.y = door.currentRot;
+              });
+
+
+              let currentLoc = "Outside";
+              for (let r of roomTriggers) {
+                  if (camera.position.x > r.minX && camera.position.x < r.maxX && camera.position.z > r.minZ && camera.position.z < r.maxZ) {
+                      currentLoc = r.name; break;
+                  }
+              }
+              if (currentLoc === "Outside" && (Math.abs(camera.position.x) < 6 || Math.abs(camera.position.z) < 6)) currentLoc = "Corridor";
+              document.getElementById('loc-display').innerText = currentLoc;
+
+
+              drawMiniMap();
+          }
+          renderer.render(scene, camera);
+      }
+
+
+      function onResize() {
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+
+
+      init();
+  </script>
+</body>
+</html>
