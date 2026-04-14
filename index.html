@@ -1,888 +1,1110 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Final 3D school project</title>
-  <style>
-      body { margin: 0; overflow: hidden; background-color: #74b9ff; font-family: 'Segoe UI', sans-serif; cursor: none; }
-      #crosshair {
-          position: fixed; top: 50%; left: 50%; width: 8px; height: 8px;
-          background: white; border-radius: 50%; transform: translate(-50%, -50%);
-          pointer-events: none; z-index: 10; box-shadow: 0 0 4px rgba(0,0,0,0.8);
-          transition: all 0.2s ease;
-      }
-      #interact-tip {
-          position: fixed; top: 55%; left: 50%; transform: translateX(-50%);
-          color: #f1c40f; font-weight: bold; font-size: 16px; text-shadow: 1px 1px 4px black;
-          display: none; pointer-events: none; z-index: 10;
-      }
-      #temp-msg {
-          position: fixed; top: 120px; left: 50%; transform: translateX(-50%);
-          color: #00ffcc; font-weight: bold; font-size: 22px; text-shadow: 1px 1px 5px black, 0 0 10px rgba(0,255,200,0.5);
-          opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 20;
-          background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 8px;
-      }
-      #hud {
-          position: absolute; top: 20px; left: 20px; background: rgba(0,0,0,0.85);
-          color: white; padding: 15px 25px; border-radius: 12px; border-left: 6px solid #e74c3c;
-          pointer-events: none; box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      }
-      #mini-map-container {
-          position: absolute; top: 20px; right: 20px; width: 220px; height: 220px;
-          background: rgba(0, 0, 0, 0.8); border: 2px solid #555; border-radius: 12px;
-          overflow: hidden;
-      }
-      #mini-map-canvas { width: 100%; height: 100%; }
-      #loc-display { font-size: 22px; font-weight: 800; color: #f1c40f; margin-top: 5px; }
-      #instructions {
-          position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-          background: rgba(255, 255, 255, 0.95); padding: 12px 30px;
-          border-radius: 30px; font-size: 14px; color: #111; text-align: center; font-weight: bold;
-          box-shadow: 0 5px 15px rgba(0,0,0,0.3); pointer-events: none;
-      }
-      kbd { background: #222; color: #fff; padding: 2px 8px; border-radius: 4px; border: 1px solid #555; font-family: monospace; }
-      #start-overlay {
-          position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: flex; flex-direction: column;
-          align-items: center; justify-content: center; color: white; z-index: 1000;
-      }
-      #start-btn { padding: 15px 40px; font-size: 20px; font-weight: bold; background: #e74c3c; border: none; border-radius: 8px; color: white; cursor: pointer; transition: 0.2s; }
-      #start-btn:hover { background: #c0392b; transform: scale(1.05); }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>织梦岛 DX：经典 Boss 连战</title>
+    <style>
+        body {
+            margin: 0;
+            background: #000;
+            color: #fff;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            user-select: none;
+        }
+        #game-wrapper {
+            position: relative;
+            border: 20px solid #4a4a4a;
+            border-radius: 10px 10px 30px 10px;
+            box-shadow: inset 0 0 10px #000, 0 0 20px rgba(255,255,255,0.2);
+            background: #000;
+            padding: 10px;
+        }
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            width: 512px;
+            height: 384px;
+            background: #c0d8b0;
+            display: block;
+            border: 2px solid #000;
+        }
+        #ui-layer {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            pointer-events: none;
+        }
+        .hearts {
+            color: #ff3333;
+            font-size: 24px;
+            text-shadow: 2px 2px 0 #000;
+            letter-spacing: 2px;
+        }
+        #instructions {
+            margin-top: 15px;
+            color: #ccc;
+            text-align: center;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+        .highlight { color: #f1c40f; font-weight: bold; }
+    </style>
 </head>
 <body>
 
+<div id="game-wrapper">
+    <div id="ui-layer">
+        <div>
+            <div style="font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000; margin-bottom: 4px;">- LIFE -</div>
+            <div id="player-hearts" class="hearts">❤️❤️❤️</div>
+        </div>
+        <div id="boss-info" style="text-align: right;">
+            <div id="boss-name" style="font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000;">BOSS: 1/10</div>
+            <div id="boss-hp-bar" style="width: 60px; height: 4px; background: #333; border: 1px solid #fff; margin-top: 4px;">
+                <div id="boss-hp-fill" style="width: 100%; height: 100%; background: #f1c40f;"></div>
+            </div>
+        </div>
+    </div>
+    <canvas id="gameCanvas" width="256" height="192"></canvas>
+</div>
 
-  <div id="start-overlay">
-      <h1 style="font-size: 40px; margin-bottom: 10px;">School Simulator 2.3</h1>
-      <p style="font-size: 18px; margin-bottom: 30px; color: #ccc;">By: Mickey Peng</p>
-      <button id="start-btn">Start the adventure</button>
-  </div>
+<div id="instructions">
+    <span class="highlight">WASD</span>: 移动 | <span class="highlight">J</span>: 剑 | <span class="highlight">K</span>: 罐 | <span class="highlight">L</span>: 冲 | <span class="highlight">H</span>: 钩 | <span class="highlight">U</span>: 跳 | <span class="highlight">B</span>: 炸弹 | <span class="highlight">P</span>: 粉末 | <span class="highlight">R</span>: 魔棒 | <span class="highlight">C</span>: 弓箭<br>
+    【1-0】数字键选关 | 第10关：世界的缔造者“作者”！小心他的弹幕与时空冻结！
+</div>
 
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const heartsEl = document.getElementById('player-hearts');
+    const bossNameEl = document.getElementById('boss-name');
+    const bossHpFillEl = document.getElementById('boss-hp-fill');
 
-  <div id="crosshair"></div>
-  <div id="interact-tip">[ 左键 ] 交互</div>
-  <div id="temp-msg"></div>
-   <div id="hud">
-      <div style="font-size: 13px; color: #aaa;">Current Area Detection</div>
-      <div id="loc-display">Loading……</div>
-  </div>
+    const FPS = 60;
 
+    const keys = {};
+    window.addEventListener('keydown', e => { 
+        keys[e.code] = true; 
+        if (e.code === 'KeyJ' || e.code === 'Space') playerAttack();
+        if (e.code === 'KeyK') playerInteract();
+        if (e.code === 'KeyL') playerDash();
+        if (e.code === 'KeyH') playerHookshot();
+        if (e.code === 'KeyU') playerJump();
+        if (e.code === 'KeyB') playerDropBomb();
+        if (e.code === 'KeyP') playerDropPowder();
+        if (e.code === 'KeyR') playerShootRod();
+        if (e.code === 'KeyC') playerShootArrow();
+        
+        // 快捷作弊键：直接切换关卡 (1-0)
+        if (e.code === 'Digit1') { currentLevel = 1; initBoss(); }
+        if (e.code === 'Digit2') { currentLevel = 2; initBoss(); }
+        if (e.code === 'Digit3') { currentLevel = 3; initBoss(); }
+        if (e.code === 'Digit4') { currentLevel = 4; initBoss(); }
+        if (e.code === 'Digit5') { currentLevel = 5; initBoss(); }
+        if (e.code === 'Digit6') { currentLevel = 6; initBoss(); }
+        if (e.code === 'Digit7') { currentLevel = 7; initBoss(); }
+        if (e.code === 'Digit8') { currentLevel = 8; initBoss(); }
+        if (e.code === 'Digit9') { currentLevel = 9; initBoss(); }
+        if (e.code === 'Digit0') { currentLevel = 10; initBoss(); }
+    });
+    window.addEventListener('keyup', e => keys[e.code] = false);
 
-  <div id="mini-map-container">
-      <canvas id="mini-map-canvas" width="220" height="220"></canvas>
-  </div>
+    let currentLevel = 1; 
+    let projectiles = [];
+    let bombs = [];
+    let rocks = [];
+    let windX = 0;
 
+    let player = {
+        x: 128, y: 140, z: 0, vz: 0,
+        radius: 6, speed: 1.5,
+        hp: 3, maxHp: 3,
+        dir: 'up', state: 'idle', 
+        timer: 0, invuln: 0,
+        vx: 0, vy: 0, hasHit: false, carrying: false,
+        attackCooldown: 0,
+        powderCooldown: 0,
+        arrowCooldown: 0,
+        freezeTimer: 0
+    };
 
-  <div id="instructions">
-      <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> Move | <kbd>Shift</kbd> Sprint/Leave | <kbd>click</kbd> Use high lighted item
-  </div>
+    let hookshot = { active: false, x: 0, y: 0, vx: 0, vy: 0, length: 0, returning: false, attachedBoss: false };
+    let boss = { hp: 4, maxHp: 4, invuln: 0, state: 'move', timer: 0 };
 
+    const BOSS_DATA = [
+        { name: "蠕虫", hp: 4 },
+        { name: "壶魔王", hp: 5 },
+        { name: "巨眼史莱姆", hp: 12 },
+        { name: "灯笼鱼", hp: 16 },
+        { name: "史莱姆鳗鱼", hp: 5 },
+        { name: "脸孔魔王", hp: 5 },
+        { name: "邪恶大鹫", hp: 14 },
+        { name: "火焰热头", hp: 16 },
+        { name: "最终梦魇", hp: 0 }, // 形态血量不同
+        { name: "作者 (The Author)", hp: 24 }
+    ];
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <script>
-      let scene, camera, renderer, clock;
-      let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, canJump = false;
-      let velocity = new THREE.Vector3();
-      let direction = new THREE.Vector3();
-      let isStarted = false;
+    function initBoss() {
+        projectiles.length = 0;
+        bombs.length = 0;
+        rocks.length = 0;
+        windX = 0;
+        
+        let bData = BOSS_DATA[currentLevel - 1];
+        bossNameEl.innerText = `BOSS: ${currentLevel}/10 ${bData.name}`;
+        boss.hp = bData.hp;
+        boss.maxHp = bData.hp;
+        boss.invuln = 0;
 
+        if (currentLevel === 1) {
+            boss.x = 128; boss.y = 60; boss.angle = Math.random() * Math.PI * 2;
+            boss.history = []; boss.segments = []; boss.numSegments = 5; boss.segmentRadius = 10;
+            boss.baseSpeed = 1.2; boss.speed = 1.2; boss.turnSpeed = 0.05; boss.turnDir = 1;
+            for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y});
+        } else if (currentLevel === 2) {
+            boss.x = 128; boss.y = 96; boss.jarHp = 3; boss.radius = 14;  
+            boss.state = 'jar_move'; boss.timer = 60; boss.vx = 1.5; boss.vy = 1.5;
+        } else if (currentLevel === 3) {
+            boss.x = 128; boss.y = 96; boss.state = 'combined'; boss.radius = 24; boss.ramHp = 4;
+            boss.eyes = []; boss.vx = 0.8; boss.vy = 0.5; 
+        } else if (currentLevel === 4) {
+            boss.state = 'swim'; boss.timer = 120; boss.chargeCooldown = 0; boss.x = 200; boss.y = 100; boss.radius = 26; 
+            boss.lure = {x: 0, y: 0, radius: 8}; boss.vx = 1; boss.vy = 0; boss.fairies = []; player.dir = 'right';
+        } else if (currentLevel === 5) {
+            boss.state = 'hidden'; boss.timer = 60; boss.radius = 12; boss.tailAngle = 0;
+            boss.holes = [{x: 48, y: 48, dx: 1, dy: 1}, {x: 208, y: 48, dx: -1, dy: 1}, {x: 48, y: 144, dx: 1, dy: -1}, {x: 208, y: 144, dx: -1, dy: -1}]; boss.holeIndex = 0;
+        } else if (currentLevel === 6) {
+            boss.state = 'hidden'; boss.timer = 120; boss.x = 128; boss.y = 96; boss.radius = 36; boss.alpha = 0;
+            boss.tiles = []; for (let i = 0; i < 8; i++) boss.tiles.push({x: 40 + (i % 4) * 58, y: 50 + Math.floor(i / 4) * 80, z: 0, state: 'idle', timer: i * 80 + 90, vx: 0, vy: 0});
+            boss.holes = []; boss.holeTimer = 90;
+        } else if (currentLevel === 7) {
+            boss.state = 'soar'; boss.timer = 120; boss.x = 300; boss.y = 40; boss.radius = 22; boss.vx = -2; boss.vy = 0;
+        } else if (currentLevel === 8) {
+            boss.state = 'lava_hide'; boss.timer = 90; boss.x = 128; boss.y = 96; boss.radius = 16; boss.vx = 0; boss.vy = 0;
+        } else if (currentLevel === 9) {
+            boss.shadowPhase = 1;
+            setupShadowPhase();
+        } else if (currentLevel === 10) {
+            boss.state = 'author_float'; boss.timer = 0; boss.freezeCooldown = 500;
+            boss.invisCooldown = 1000; boss.invisTimer = 0;
+            boss.x = 128; boss.y = 96; boss.radius = 16;
+            boss.worms = []; // 初始化蠕虫大军存储数组
+        }
+        updateBossUI();
+    }
 
-      const PLAYER_HEIGHT = 1.6;
-      const MOVE_SPEED_WALK = 140.0;
-      const MOVE_SPEED_SPRINT = 280.0;
-      const PLAYER_RADIUS = 0.4;
+    // 第九关专属：Shadow Boss 6 个形态初始化
+    function setupShadowPhase() {
+        boss.invuln = 0; boss.timer = 60; boss.z = 0; boss.vz = 0;
+        projectiles = projectiles.filter(p => p.type === 'powder' || p.type === 'rod_fire'); // 清理之前的弹幕
+        let names = ["Giant Gel", "魔法师 (Agahnim)", "巨型蜈蚣 (Moldorm)", "加侬之影 (Ganon)", "兰莫拉 (Lanmola)", "巨眼 (DethI)"];
+        bossNameEl.innerText = `BOSS: 9/10 ${names[boss.shadowPhase - 1]}`;
+
+        if(boss.shadowPhase === 1) { 
+            boss.hp = 3; boss.maxHp = 3; boss.radius = 20; boss.state = 'gel_idle'; boss.vx = 0; boss.vy = 0;
+        } else if(boss.shadowPhase === 2) { 
+            boss.hp = 4; boss.maxHp = 4; boss.state = 'agahnim_prep'; boss.targetX = 128; boss.targetY = 40; boss.radius = 16;
+        } else if(boss.shadowPhase === 3) { 
+            boss.hp = 8; boss.maxHp = 8; boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 2.5; boss.state = 'moldorm_move';
+            boss.turnDir = 1; boss.turnSpeed = 0.08; boss.segments = []; boss.numSegments = 7; boss.segmentRadius = 14; 
+            for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y}); boss.history = [];
+        } else if(boss.shadowPhase === 4) { 
+            boss.hp = 16; boss.maxHp = 16; boss.state = 'ganon_move'; boss.radius = 20; boss.trident = null;
+        } else if(boss.shadowPhase === 5) { 
+            boss.hp = 1; boss.maxHp = 1; boss.state = 'lanmola_move'; boss.radius = 12; boss.vx = 4; boss.vy = 3;
+        } else if(boss.shadowPhase === 6) { 
+            boss.hp = 12; boss.maxHp = 12; boss.state = 'dethi_swing'; boss.radius = 24; boss.eyeOpen = false; boss.armAngle = 0; 
+        }
+        updateBossUI();
+    }
+
+    // 新道具动作
+    function playerDropPowder() {
+        if (player.freezeTimer > 0) return;
+        if (player.state !== 'hurt' && player.powderCooldown <= 0 && !projectiles.some(p => p.type === 'powder')) {
+            let px = player.x + (player.dir==='left'?-15:player.dir==='right'?15:0);
+            let py = player.y + (player.dir==='up'?-15:player.dir==='down'?15:0);
+            projectiles.push({x: px, y: py, vx: 0, vy: 0, life: 25, type: 'powder'});
+            player.powderCooldown = 10;
+        }
+    }
+    function playerShootRod() {
+        if (player.freezeTimer > 0) return;
+        if (player.state !== 'hurt' && !projectiles.some(p => p.type === 'rod_fire')) {
+            let vx = player.dir==='left'?-6:player.dir==='right'?6:0;
+            let vy = player.dir==='up'?-6:player.dir==='down'?6:0;
+            if(vx===0 && vy===0) vy = 6; // 默认向下
+            projectiles.push({x: player.x, y: player.y, vx: vx, vy: vy, life: 60, type: 'rod_fire'});
+        }
+    }
+
+    function playerShootArrow() {
+        if (player.freezeTimer > 0) return;
+        if (player.state !== 'hurt' && !projectiles.some(p => p.type === 'arrow') && player.arrowCooldown <= 0) {
+            let vx = player.dir === 'left' ? -8 : player.dir === 'right' ? 8 : 0;
+            let vy = player.dir === 'up' ? -8 : player.dir === 'down' ? 8 : 0;
+            if (vx === 0 && vy === 0) vy = 8;
+            projectiles.push({x: player.x, y: player.y, vx: vx, vy: vy, life: 50, type: 'arrow'});
+            player.arrowCooldown = 10;
+        }
+    }
+
+    // 原有动作
+    function playerInteract() {
+        if (player.freezeTimer > 0) return;
+        if (currentLevel !== 2) return;
+        if (player.carrying) {
+            player.carrying = false; boss.state = 'thrown'; boss.vx = 0; boss.vy = 0;
+            if (player.dir === 'up') boss.vy = -5; if (player.dir === 'down') boss.vy = 5;
+            if (player.dir === 'left') boss.vx = -5; if (player.dir === 'right') boss.vx = 5;
+        } else if (boss.state === 'jar_stunned') {
+            if (Math.hypot(player.x - boss.x, player.y - boss.y) < 24) { player.carrying = true; boss.state = 'carried'; boss.carryTimer = 360; }
+        }
+    }
+    function playerDash() {
+        if (player.freezeTimer > 0) return;
+        if (currentLevel === 4) return;
+        if (player.state === 'idle' || player.state === 'walk') { player.state = 'dash'; player.timer = 15; player.hasHit = false; player.vx = 0; player.vy = 0; }
+    }
+    function playerJump() { 
+        if (player.freezeTimer > 0) return;
+        if (currentLevel === 4) return; 
+        if (player.z === 0 && (player.state === 'idle' || player.state === 'walk')) player.vz = 6; 
+    }
+    function playerHookshot() {
+        if (player.freezeTimer > 0) return;
+        if (currentLevel === 4) return;
+        if (player.state === 'idle' || player.state === 'walk') {
+            player.state = 'hookshot'; hookshot.active = true; hookshot.returning = false; hookshot.length = 0; hookshot.attachedBoss = false; hookshot.x = player.x; hookshot.y = player.y;
+            let s = 6; hookshot.vx = 0; hookshot.vy = 0;
+            if (player.dir === 'up') hookshot.vy = -s; if (player.dir === 'down') hookshot.vy = s;
+            if (player.dir === 'left') hookshot.vx = -s; if (player.dir === 'right') hookshot.vx = s;
+        }
+    }
+    function playerAttack() {
+        if (player.freezeTimer > 0) return;
+        if (player.state === 'idle' || player.state === 'walk') { 
+            player.state = 'attack'; player.timer = 12; player.hasHit = false; player.vx = 0; player.vy = 0; 
+        }
+    }
+    function playerDropBomb() {
+        if (player.freezeTimer > 0) return;
+        if ((player.state === 'idle' || player.state === 'walk') && bombs.length < 2) bombs.push({x: player.x, y: player.y, timer: 90, state: 'ticking'});
+    }
+
+    function update() {
+        if (player.invuln > 0) player.invuln--;
+        if (player.attackCooldown > 0) player.attackCooldown--;
+        if (player.powderCooldown > 0) player.powderCooldown--;
+        if (player.arrowCooldown > 0) player.arrowCooldown--;
+        if (player.z > 0 || player.vz !== 0) {
+            player.z += player.vz; player.vz -= 0.5;
+            if (player.z <= 0) { player.z = 0; player.vz = 0; }
+        }
+
+        // 第七关强风
+        if (currentLevel === 7) {
+            player.x += windX;
+            if ((player.x < 32 || player.x > 224 || player.y < 32 || player.y > 160) && player.z === 0) {
+                player.hp--; updateHearts(); player.x = 128; player.y = 100; player.invuln = 60;
+                if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
+            }
+        }
+        
+        // 第八关岩浆
+        if (currentLevel === 8 && player.z === 0) {
+            if (player.x > 48 && player.x < 208 && player.y > 48 && player.y < 144) {
+                player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60;
+                if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
+            }
+        }
+
+        // 炸弹更新
+        for (let i = bombs.length - 1; i >= 0; i--) {
+            let b = bombs[i];
+            if (b.state === 'ticking') {
+                b.timer--;
+                if (b.timer <= 0) {
+                    b.state = 'exploding'; b.timer = 15;
+                    if (currentLevel === 6 && boss.state === 'visible') {
+                        if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) {
+                            boss.hp--; boss.invuln = 20; bgFlash();
+                            if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("进入第七关！"); currentLevel = 7; initBoss(); updateHearts(); }
+                        }
+                    }
+                    if (currentLevel === 7) {
+                        if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) { bossDamage7(); }
+                    }
+                    if (Math.hypot(player.x - b.x, player.y - b.y) < player.radius + 24 && player.invuln <= 0 && player.state !== 'hurt' && player.z < 10) {
+                        player.hp--; updateHearts(); triggerPlayerKnockback(b); player.invuln = 60;
+                        if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+                    }
+                }
+            } else if (b.state === 'exploding') {
+                b.timer--; if (b.timer <= 0) bombs.splice(i, 1);
+            }
+        }
+
+        // 落石更新
+        for (let i = rocks.length - 1; i >= 0; i--) {
+            let r = rocks[i]; r.y += r.vy;
+            if (r.y >= r.targetY) {
+                rocks.splice(i, 1);
+            } else if (Math.hypot(player.x - r.x, player.y - r.y) < player.radius + 8 && player.z === 0) {
+                if (player.invuln <= 0 && player.state !== 'hurt') {
+                    player.hp--; updateHearts(); triggerPlayerKnockback(r); player.invuln = 60;
+                    if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+                }
+                rocks.splice(i, 1); 
+            }
+        }
+
+        // 玩家状态机
+        if (player.freezeTimer > 0) {
+            player.freezeTimer--;
+            player.state = 'idle';
+        } else if (player.state === 'hurt') {
+            player.x += player.vx; player.y += player.vy; player.vx *= 0.85; player.vy *= 0.85;
+            player.timer--; if (player.timer <= 0) player.state = 'idle';
+        } else if (player.state === 'attack') {
+            player.timer--; if (player.timer <= 0) player.state = 'idle';
+            if (player.timer <= 12 && player.timer >= 2) checkSwordHit();
+        } else if (player.state === 'dash') {
+            player.timer--; let dashSpeed = 5;
+            if (player.dir === 'up') player.y -= dashSpeed; if (player.dir === 'down') player.y += dashSpeed;
+            if (player.dir === 'left') player.x -= dashSpeed; if (player.dir === 'right') player.x += dashSpeed;
+            if (player.timer <= 0) {
+                player.state = 'idle';
+            }
+        } else if (player.state === 'hookshot') {
+            if (!hookshot.returning) {
+                hookshot.x += hookshot.vx; hookshot.y += hookshot.vy; hookshot.length += 6;
+                if (hookshot.length > 100 || hookshot.x < 16 || hookshot.x > 240 || hookshot.y < 24 || hookshot.y > 176) hookshot.returning = true;
+                if (currentLevel === 5 && boss.state === 'popping_out') {
+                    if (Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius + 4) { hookshot.returning = true; hookshot.attachedBoss = true; boss.state = 'dragged_out'; }
+                }
+            } else {
+                let dx = player.x - hookshot.x, dy = player.y - hookshot.y; let dist = Math.hypot(dx, dy);
+                if (dist < 8) { hookshot.active = false; player.state = 'idle'; if (currentLevel === 5 && hookshot.attachedBoss) { boss.state = 'exposed'; boss.timer = 120; } hookshot.attachedBoss = false; } 
+                else { hookshot.x += (dx/dist) * 6; hookshot.y += (dy/dist) * 6; if (hookshot.attachedBoss) { boss.x = hookshot.x; boss.y = hookshot.y; } }
+            }
+        } else {
+            let dx = 0, dy = 0;
+            if (keys['ArrowUp'] || keys['KeyW']) dy -= 1; if (keys['ArrowDown'] || keys['KeyS']) dy += 1;
+            if (keys['ArrowLeft'] || keys['KeyA']) dx -= 1; if (keys['ArrowRight'] || keys['KeyD']) dx += 1;
+            if (currentLevel === 4) { if (dx < 0) player.dir = 'left'; else if (dx > 0) player.dir = 'right'; } 
+            else { if (dy < 0) player.dir = 'up'; if (dy > 0) player.dir = 'down'; if (dx < 0) player.dir = 'left'; if (dx > 0) player.dir = 'right'; }
+            if (dx !== 0 || dy !== 0) { player.state = 'walk'; const len = Math.hypot(dx, dy); player.x += (dx / len) * (player.carrying ? player.speed * 0.7 : player.speed); player.y += (dy / len) * (player.carrying ? player.speed * 0.7 : player.speed); } 
+            else { player.state = 'idle'; }
+        }
+
+        // 边界限制
+        if (currentLevel === 4) {
+            player.x = Math.max(16, Math.min(256 - 16, player.x)); player.y = Math.max(30, Math.min(192 - 16, player.y));
+        } else if (currentLevel !== 7 && currentLevel !== 8) {
+            player.x = Math.max(24, Math.min(256 - 24, player.x)); player.y = Math.max(32, Math.min(192 - 24, player.y));
+        }
+
+        if (currentLevel === 1) updateBoss1();
+        else if (currentLevel === 2) updateBoss2();
+        else if (currentLevel === 3) updateBoss3();
+        else if (currentLevel === 4) updateBoss4();
+        else if (currentLevel === 5) updateBoss5();
+        else if (currentLevel === 6) updateBoss6();
+        else if (currentLevel === 7) updateBoss7();
+        else if (currentLevel === 8) updateBoss8();
+        else if (currentLevel === 9) updateBoss9();
+        else if (currentLevel === 10) updateBoss10();
+
+        updateProjectiles();
+        checkPlayerBossCollision();
+    }
+
+    function bossDamage7() {
+        if (boss.invuln > 0) return;
+        boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
+        if (boss.hp <= 0) {
+            player.maxHp++; player.hp = player.maxHp;
+            alert("第七关：邪恶大鹫被击败！获得心之容器！\n准备迎接终极考验：火焰热头！");
+            currentLevel = 8; initBoss(); updateHearts();
+        }
+    }
+
+    function bossDamage9() {
+        if (boss.state === 'phase_transition') return;
+        boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
+        if (boss.hp <= 0) {
+            player.maxHp++; player.hp = player.maxHp; updateHearts();
+            boss.shadowPhase++;
+            if (boss.shadowPhase > 6) {
+                alert("恭喜！你击败了终极噩梦 (Shadow Nightmares)！\n等等...那是什么声音？");
+                currentLevel = 10; initBoss(); updateHearts();
+            } else {
+                boss.state = 'phase_transition'; // 化身黑球移动到中心
+                boss.targetX = 128; boss.targetY = 96;
+                boss.invuln = 9999;
+            }
+        }
+    }
+
+    function updateBoss9() {
+        if (boss.hp <= 0 && boss.state !== 'phase_transition') return;
+        if (boss.invuln > 0 && boss.state !== 'phase_transition') boss.invuln--;
+        boss.timer--;
+
+        if (boss.state === 'phase_transition') {
+            let dx = boss.targetX - boss.x, dy = boss.targetY - boss.y;
+            let dist = Math.hypot(dx, dy);
+            if (dist < 2) {
+                boss.x = boss.targetX; boss.y = boss.targetY;
+                setupShadowPhase();
+            } else {
+                boss.x += (dx/dist) * 2; boss.y += (dy/dist) * 2;
+            }
+            return;
+        }
+
+        if (boss.shadowPhase === 1) { // Giant Gel - 跳跃移动
+            if (boss.z > 0 || boss.vz !== 0) {
+                boss.z += boss.vz; boss.vz -= 0.2;
+                boss.x += boss.vx; boss.y += boss.vy;
+                if (boss.z <= 0) { boss.z = 0; boss.vz = 0; boss.vx = 0; boss.vy = 0; boss.timer = 45; }
+            } else if (boss.timer <= 0) {
+                let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                boss.vx = Math.cos(ang) * 1.5; boss.vy = Math.sin(ang) * 1.5;
+                boss.vz = 3.5; // 缓慢跳跃
+            }
+            if (boss.x < 32 || boss.x > 224) boss.vx *= -1;
+            if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
+        } else if (boss.shadowPhase === 2) { // Agahnim - 不再瞬移，化身黑球
+            if (boss.state === 'agahnim_prep') {
+                if (boss.timer <= 0) {
+                    let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*3, vy: Math.sin(ang)*3, type: 'agahnim_fire'});
+                    boss.state = 'agahnim_wait'; 
+                }
+            } else if (boss.state === 'agahnim_wait') {
+                let hasFireball = projectiles.some(p => p.type === 'agahnim_fire' || p.type === 'agahnim_fire_reflected');
+                if (!hasFireball) {
+                    boss.state = 'shadow_warp'; 
+                    boss.targetX = 40 + Math.random() * 176; 
+                    boss.targetY = 40 + Math.random() * 100;
+                }
+            } else if (boss.state === 'shadow_warp') {
+                let dx = boss.targetX - boss.x, dy = boss.targetY - boss.y;
+                let dist = Math.hypot(dx, dy);
+                if (dist < 2) {
+                    boss.x = boss.targetX; boss.y = boss.targetY;
+                    boss.state = 'agahnim_prep'; boss.timer = 60;
+                } else {
+                    boss.x += (dx/dist) * 2; boss.y += (dy/dist) * 2;
+                }
+            }
+        } else if (boss.shadowPhase === 3) { // Moldorm Shadow
+            if (Math.random() < 0.02) boss.turnDir *= -1; 
+            boss.angle += boss.turnSpeed * boss.turnDir;
+            let headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed;
+            let headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed;
+            if (headX < 24 || headX > 256 - 24) { boss.angle = Math.PI - boss.angle; headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed; }
+            if (headY < 32 || headY > 192 - 24) { boss.angle = -boss.angle; headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed; }
+            boss.segments[0].x = headX; boss.segments[0].y = headY;
+            boss.history.unshift({x: headX, y: headY});
+            if (boss.history.length > boss.numSegments * 8) boss.history.pop();
+            for (let i = 1; i < boss.numSegments; i++) {
+                let histIndex = i * 6; 
+                if (histIndex < boss.history.length) {
+                    boss.segments[i].x = boss.history[histIndex].x; boss.segments[i].y = boss.history[histIndex].y;
+                }
+            }
+        } else if (boss.shadowPhase === 4) { // Ganon
+            if (boss.state === 'ganon_idle') {
+                if (boss.timer <= 0) { boss.state = 'ganon_move'; boss.timer = 60; }
+            } else {
+                boss.x += Math.sin(Date.now()/500)*1.5; boss.y += Math.cos(Date.now()/400)*1;
+                
+                // 不在冷却时间时，每20帧不断生成火蝙蝠 (去除了 > 0 限制)
+                if (boss.timer % 20 === 0) {
+                    let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*2.5, vy: Math.sin(ang)*2.5, type: 'firebat', life: 200});
+                }
+                
+                if (boss.timer <= -150 && !boss.trident) {
+                    let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                    boss.trident = {x: boss.x, y: boss.y, vx: Math.cos(ang)*4, vy: Math.sin(ang)*4, returning: false, timer: 30};
+                }
+                if (boss.trident) {
+                    boss.trident.x += boss.trident.vx; boss.trident.y += boss.trident.vy;
+                    if (!boss.trident.returning) {
+                        boss.trident.timer--; if (boss.trident.timer <= 0) boss.trident.returning = true;
+                    } else {
+                        let dx = boss.x - boss.trident.x, dy = boss.y - boss.trident.y;
+                        let d = Math.hypot(dx, dy);
+                        if (d < 10) { boss.trident = null; boss.state = 'ganon_idle'; boss.timer = 240; } // 4秒绝对冷却 (60帧*4)
+                        else { boss.trident.x += (dx/d)*5; boss.trident.y += (dy/d)*5; }
+                    }
+                }
+            }
+        } else if (boss.shadowPhase === 5) { // Lanmola
+            boss.x += boss.vx; boss.y += boss.vy;
+            if (boss.x < 32 || boss.x > 224) boss.vx *= -1;
+            if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
+        } else if (boss.shadowPhase === 6) { // DethI
+            boss.armAngle += 0.05;
+            boss.x = 128 + Math.sin(Date.now()/600)*50;
+            if (boss.timer <= 0) {
+                boss.eyeOpen = !boss.eyeOpen;
+                boss.timer = boss.eyeOpen ? 60 : 120;
+            }
+        }
+    }
+
+    // 第十关 作者
+    function updateBoss10() {
+        if (boss.hp <= 0) return;
+        boss.timer++;
+        boss.freezeCooldown--;
+
+        if (boss.invisCooldown !== undefined) {
+            boss.invisCooldown--;
+            if (boss.invisCooldown <= 0) {
+                boss.invisTimer = 300;
+                boss.invisCooldown = 1000;
+            }
+            if (boss.invisTimer > 0) boss.invisTimer--;
+        }
+
+        boss.x += Math.sin(boss.timer * 0.05) * 1.5;
+        boss.y += Math.cos(boss.timer * 0.03) * 1.0;
+        
+        // 边界限制
+        boss.x = Math.max(30, Math.min(226, boss.x));
+        boss.y = Math.max(40, Math.min(180, boss.y));
+
+        if (boss.hp > 5) {
+            if (boss.timer % 50 === 0) { // 火球减缓为 50 帧一发
+                let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*4.5, vy: Math.sin(ang)*4.5, type: 'author_fire', life: 100});
+            }
+        } else {
+            if (boss.timer % 20 === 0) {
+                let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*6, vy: Math.sin(ang)*6, type: 'author_arrow', life: 100});
+            }
+        }
+
+        if (boss.freezeCooldown <= 0) {
+            player.freezeTimer = 50; // 冻结玩家 50帧
+            boss.freezeCooldown = 500; // 500帧后再次冻结
+            // 冰冻报错特效
+            document.getElementById('gameCanvas').style.backgroundColor = "#00ffff";
+            setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100);
+        }
+
+        // 0.05% 概率生成小蠕虫（上限 3 只）
+        if (Math.random() < 0.0005 && boss.worms && boss.worms.length < 3) {
+            let worm = {
+                x: 40 + Math.random() * 176, y: 40 + Math.random() * 112,
+                angle: Math.random() * Math.PI * 2, speed: 1.5, turnSpeed: 0.05, turnDir: 1,
+                segments: [], history: [], numSegments: 4, segmentRadius: 8
+            };
+            for(let i=0; i<worm.numSegments; i++) worm.segments.push({x: worm.x, y: worm.y});
+            boss.worms.push(worm);
+        }
+        
+        // 更新蠕虫
+        if (boss.worms) {
+            boss.worms.forEach(w => {
+                if (Math.random() < 0.05) w.turnDir *= -1;
+                w.angle += w.turnSpeed * w.turnDir;
+                let headX = w.segments[0].x + Math.cos(w.angle) * w.speed;
+                let headY = w.segments[0].y + Math.sin(w.angle) * w.speed;
+                if (headX < 24 || headX > 256 - 24) { w.angle = Math.PI - w.angle; headX = w.segments[0].x + Math.cos(w.angle) * w.speed; }
+                if (headY < 32 || headY > 192 - 24) { w.angle = -w.angle; headY = w.segments[0].y + Math.sin(w.angle) * w.speed; }
+                w.segments[0].x = headX; w.segments[0].y = headY;
+                w.history.unshift({x: headX, y: headY});
+                if (w.history.length > w.numSegments * 6) w.history.pop();
+                for (let i = 1; i < w.numSegments; i++) {
+                    let histIndex = i * 5; 
+                    if (histIndex < w.history.length) {
+                        w.segments[i].x = w.history[histIndex].x; w.segments[i].y = w.history[histIndex].y;
+                    }
+                }
+            });
+        }
+        updateBossUI();
+    }
+
+    // 复用之前前8关逻辑 
+    function updateBoss1() {
+        if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--;
+        if (Math.random() < 0.02) boss.turnDir *= -1; boss.angle += boss.turnSpeed * boss.turnDir;
+        let headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed; let headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed;
+        if (headX < 24 || headX > 256 - 24) { boss.angle = Math.PI - boss.angle; headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed; }
+        if (headY < 32 || headY > 192 - 24) { boss.angle = -boss.angle; headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed; }
+        boss.segments[0].x = headX; boss.segments[0].y = headY; boss.history.unshift({x: headX, y: headY});
+        if (boss.history.length > boss.numSegments * 10) boss.history.pop();
+        for (let i = 1; i < boss.numSegments; i++) { let histIndex = i * 8; if (histIndex < boss.history.length) { boss.segments[i].x = boss.history[histIndex].x; boss.segments[i].y = boss.history[histIndex].y; } }
+    }
+    function updateBoss2() {
+        if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--;
+        if (boss.state === 'jar_move') {
+            boss.x += boss.vx; boss.y += boss.vy; if (boss.x < 32 || boss.x > 256 - 32) boss.vx *= -1; if (boss.y < 40 || boss.y > 192 - 32) boss.vy *= -1; boss.timer--;
+            if (boss.timer <= 0) { boss.state = 'jar_pop'; boss.timer = 40; projectiles.push({ x: boss.x, y: boss.y - 8, vx: (player.x - boss.x)/100*2.5, vy: (player.y - boss.y)/100*2.5 }); }
+        } else if (boss.state === 'jar_pop') { boss.timer--; if (boss.timer <= 0) { boss.state = 'jar_move'; boss.timer = 120 + Math.random() * 60; }
+        } else if (boss.state === 'jar_stunned') { boss.timer--; if (boss.timer <= 0) boss.state = 'jar_move'; 
+        } else if (boss.state === 'carried') { boss.x = player.x; boss.y = player.y - 14; if (boss.carryTimer > 0) { boss.carryTimer--; if (boss.carryTimer <= 0) { player.carrying = false; boss.state = 'jar_pop'; boss.timer = 40; } }
+        } else if (boss.state === 'thrown') { boss.x += boss.vx; boss.y += boss.vy; if (boss.x < 24 || boss.x > 256 - 24 || boss.y < 32 || boss.y > 192 - 24) { boss.jarHp--; if (boss.jarHp <= 0) { boss.state = 'genie_fly'; boss.timer = 60; } else { boss.state = 'jar_move'; boss.vx = (Math.random() > 0.5 ? 1.5 : -1.5); boss.vy = (Math.random() > 0.5 ? 1.5 : -1.5); boss.timer = 60; } }
+        } else if (boss.state === 'genie_fly') { let dist = Math.hypot(player.x - boss.x, player.y - boss.y); boss.x += ((player.x - boss.x)/dist) * 0.8; boss.y += ((player.y - boss.y)/dist) * 0.8; boss.timer--; if (boss.timer <= 0) { projectiles.push({ x: boss.x, y: boss.y - 8, vx: (player.x - boss.x)/dist * 2.5, vy: (player.y - boss.y)/dist * 2.5 }); boss.timer = 90; } }
+    }
+    function updateBoss3() {
+        if (boss.state === 'combined') { if (boss.invuln > 0) boss.invuln--; boss.x += boss.vx; boss.y += boss.vy; if (boss.x < 48 || boss.x > 256 - 48) boss.vx *= -1; if (boss.y < 48 || boss.y > 192 - 48) boss.vy *= -1;
+        } else if (boss.state === 'split') { if (boss.invuln > 0) boss.invuln--; boss.eyes.forEach(eye => { if (eye.hp > 0) { if (eye.invuln > 0) eye.invuln--; eye.x += eye.vx; eye.y += eye.vy; if (eye.x < 32 || eye.x > 256 - 32) eye.vx *= -1; if (eye.y < 40 || eye.y > 192 - 40) eye.vy *= -1; } }); }
+    }
+    function updateBoss4() { 
+        if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--; boss.chargeCooldown--;
+        boss.lure.x = boss.x - 30; boss.lure.y = boss.y - 12 + Math.sin(Date.now() / 200) * 4;
+        if (boss.state === 'swim') { boss.x += boss.vx; if (boss.x < 150 || boss.x > 220) boss.vx *= -1; boss.timer--; if (boss.timer <= 0) { if (boss.chargeCooldown <= 0 && Math.random() > 0.4) { boss.state = 'charge'; boss.timer = 120; } else { boss.fairies.push({x: boss.x - 10, y: boss.y + 10, vx: -2, vy: (Math.random()-0.5)*2, hp: 1}); boss.timer = 90; } }
+        } else if (boss.state === 'charge') { boss.x -= 5.5; if (boss.x <= 40) { boss.x = 40; boss.state = 'return_swim'; }
+        } else if (boss.state === 'return_swim') { boss.x += 2.5; if (boss.x >= 200) { boss.state = 'swim'; boss.chargeCooldown = 0; } }
+        for (let i = boss.fairies.length - 1; i >= 0; i--) { let f = boss.fairies[i]; f.x += f.vx; f.y += f.vy; if (f.y < 40 || f.y > 170) f.vy *= -1; if (f.x < -10) boss.fairies.splice(i, 1); }
+    }
+    function updateBoss5() { 
+        boss.tailAngle += 0.05; if (boss.invuln > 0) boss.invuln--;
+        if (boss.state === 'hidden') { boss.timer--; if (boss.timer <= 0) { boss.holeIndex = Math.floor(Math.random() * 4); let hole = boss.holes[boss.holeIndex]; boss.x = hole.x; boss.y = hole.y; boss.state = 'popping_out'; boss.timer = 60; }
+        } else if (boss.state === 'popping_out') { let hole = boss.holes[boss.holeIndex]; boss.x += ((hole.x + hole.dx * 15) - boss.x) * 0.1; boss.y += ((hole.y + hole.dy * 15) - boss.y) * 0.1; boss.timer--; if (boss.timer <= 0) boss.state = 'retreating';
+        } else if (boss.state === 'retreating') { let hole = boss.holes[boss.holeIndex]; boss.x += (hole.x - boss.x) * 0.1; boss.y += (hole.y - boss.y) * 0.1; if (Math.hypot(boss.x - hole.x, boss.y - hole.y) < 2) { boss.state = 'hidden'; boss.timer = 60; }
+        } else if (boss.state === 'exposed') { boss.timer--; if (boss.timer <= 0) boss.state = 'retreating'; }
+    }
+    function updateBoss6() {
+        if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--; boss.timer--;
+        if (boss.state === 'hidden' && boss.timer <= 0) { boss.x = 64 + Math.random() * 128; boss.y = 64 + Math.random() * 64; boss.state = 'appearing'; boss.timer = 30; boss.alpha = 0;
+        } else if (boss.state === 'appearing') { boss.alpha += 1/30; if (boss.timer <= 0) { boss.state = 'visible'; boss.timer = 120; }
+        } else if (boss.state === 'visible') { if (boss.timer <= 0) { boss.state = 'disappearing'; boss.timer = 30; }
+        } else if (boss.state === 'disappearing') { boss.alpha -= 1/30; if (boss.timer <= 0) { boss.state = 'hidden'; boss.timer = 60 + Math.random() * 60; } }
+        boss.tiles.forEach((t, i) => { if (t.state === 'idle') { t.timer--; if (t.timer <= 0) { t.state = 'lifting'; t.timer = 30; } } else if (t.state === 'lifting') { t.z += 0.8; t.timer--; if (t.timer <= 0) { t.state = 'flying'; let dist = Math.hypot(player.x - t.x, player.y - t.y); t.vx = ((player.x - t.x)/dist) * 4; t.vy = ((player.y - t.y)/dist) * 4; } } else if (t.state === 'flying') { t.x += t.vx; t.y += t.vy; } });
+        boss.holeTimer--; if (boss.holeTimer <= 0) { boss.holes.push({x: 48 + Math.random()*160, y: 48 + Math.random()*96, radius: 0, maxRadius: 18, state: 'growing', timer: 150}); boss.holeTimer = 80 + Math.random()*60; }
+        for (let i = boss.holes.length - 1; i >= 0; i--) { let h = boss.holes[i]; if (h.state === 'growing') { h.radius += 0.5; if (h.radius >= h.maxRadius) h.state = 'open'; } else if (h.state === 'open') { h.timer--; if (h.timer <= 0) h.state = 'shrinking'; } else if (h.state === 'shrinking') { h.radius -= 0.5; if (h.radius <= 0) boss.holes.splice(i, 1); } }
+    }
+    function updateBoss7() {
+        if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--; boss.timer--;
+        if (boss.state === 'soar') { boss.x += boss.vx; boss.y = 50 + Math.sin(Date.now()/600)*25; if (boss.x < -60 || boss.x > 310) { let rnd = Math.random(); if(rnd < 0.4) { boss.state = 'feather_attack'; boss.timer = 120; } else if(rnd < 0.7) { boss.state = 'wind_attack'; boss.timer = 180; } else { boss.state = 'dive_prep'; } }
+        } else if (boss.state === 'feather_attack') { boss.x = (boss.x < 128) ? 40 : 216; boss.y = 40; if (boss.timer % 25 === 0) { for (let i = -1; i <= 1; i++) projectiles.push({x: boss.x, y: boss.y, vx: i * 0.8, vy: 2.2, type: 'feather'}); } if (boss.timer <= 0) { boss.state = 'soar'; boss.vx = (boss.x < 128) ? 2.5 : -2.5; }
+        } else if (boss.state === 'wind_attack') { boss.x = 128; boss.y = 30; windX = Math.sin(Date.now()/80) * 1.8; if (boss.timer % 20 === 0) projectiles.push({x: Math.random()*256, y: 0, vx: 0, vy: 3, type: 'feather'}); if (boss.timer <= 0) { windX = 0; boss.state = 'soar'; boss.vx = 2.5; }
+        } else if (boss.state === 'dive_prep') { boss.x = (player.x < 128) ? 300 : -60; boss.y = player.y - 10; boss.vx = (boss.x > 128) ? -4 : 4; boss.state = 'dive';
+        } else if (boss.state === 'dive') { boss.x += boss.vx; if (boss.x < -100 || boss.x > 350) { boss.state = 'soar'; boss.vx = (boss.x > 128) ? -2.5 : 2.5; } }
+    }
+    function updateBoss8() {
+        if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--; boss.timer--;
+        if (boss.state === 'lava_hide') { 
+            if (boss.timer <= 0) { 
+                boss.x = 64 + Math.random() * 128; 
+                boss.y = 64 + Math.random() * 64; 
+                boss.initialY = boss.y; // 记住起跳点，保证严格落回岩浆
+                boss.state = 'jump'; 
+                boss.timer = 60; 
+                boss.vy = -4; // 跳跃初速
+            }
+        } else if (boss.state === 'jump') { 
+            boss.y += boss.vy; 
+            boss.vy += 0.1; // 重力减小，延长滞空时间
+            if (boss.vy >= -0.05 && boss.vy <= 0.05) { // 在跳跃最高点吐火球
+                for(let i=0; i<4; i++) { 
+                    let ang = i * (Math.PI/2) + (Date.now()/100); 
+                    projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*2, vy: Math.sin(ang)*2, type: 'fire'}); 
+                } 
+            } 
+            if (boss.y > boss.initialY && boss.vy > 0) { 
+                boss.y = boss.initialY; // 严格落回岩浆初始位置
+                boss.state = 'lava_hide'; 
+                boss.timer = 90; 
+            } 
+        }
+    }
+
+    function updateProjectiles() {
+        for (let i = projectiles.length - 1; i >= 0; i--) {
+            let p = projectiles[i]; p.x += p.vx; p.y += p.vy;
+            if (p.life !== undefined) { p.life--; if (p.life <= 0) { projectiles.splice(i, 1); continue; } }
+            if (p.y > 200 || p.x < -20 || p.x > 280 || p.y < -20) { projectiles.splice(i, 1); continue; }
+            
+            if (currentLevel === 7 && boss.invuln <= 0) {
+                if ((p.type === 'powder' || p.type === 'rod_fire') && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 15) {
+                    bossDamage7(); projectiles.splice(i, 1); continue;
+                }
+            }
+
+            // 第八关专属物理碰撞处理 (只能用魔法棒伤害)
+            if (currentLevel === 8 && boss.invuln <= 0 && boss.state === 'jump') {
+                if (p.type === 'rod_fire' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 10) {
+                    boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
+                    projectiles.splice(i, 1);
+                    if (boss.hp <= 0) {
+                        player.maxHp++; player.hp = player.maxHp;
+                        alert("通过第八关！准备迎接终极隐藏关卡：梦魇群！");
+                        currentLevel = 9; initBoss(); updateHearts();
+                    }
+                    continue;
+                }
+            }
+
+            // 第十关 作者 专属物理碰撞 (反弹火球)
+            if (currentLevel === 10 && (!boss.invisTimer || boss.invisTimer <= 0)) {
+                if (p.type === 'author_fire_reflected' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) {
+                    boss.hp--; player.hasHit = true; bgFlash(); updateBossUI();
+                    boss.x = 40 + Math.random() * 176;
+                    boss.y = 40 + Math.random() * 112;
+                    projectiles.splice(i, 1);
+                    if (boss.hp <= 0) {
+                        player.maxHp++; player.hp = player.maxHp;
+                        alert("难以置信！你竟然击溃了世界的创造者，游戏彻底通关！");
+                        currentLevel = 1; initBoss(); updateHearts();
+                    }
+                    continue;
+                }
+            }
+
+            // 第九关专属物理碰撞处理 (子弹打击Boss)
+            if (currentLevel === 9 && boss.state !== 'phase_transition') {
+                if (boss.shadowPhase === 1 && p.type === 'powder' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 10) { bossDamage9(); projectiles.splice(i, 1); continue; }
+                if (boss.shadowPhase === 2 && p.type === 'agahnim_fire_reflected' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) { bossDamage9(); projectiles.splice(i, 1); continue; }
+                if (boss.shadowPhase === 5 && p.type === 'rod_fire' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 5) { bossDamage9(); projectiles.splice(i, 1); continue; }
+                if (boss.shadowPhase === 6 && boss.eyeOpen && (p.type === 'rod_fire' || p.type === 'hookshot_hit' || p.type === 'arrow') && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) { bossDamage9(); projectiles.splice(i, 1); continue; }
+            }
+        }
+    }
+
+    function checkSwordHit() {
+        if (player.hasHit) return;
+        let sx = player.x, sy = player.y - player.z;
+        if (player.dir === 'up') sy -= 18; else if (player.dir === 'down') sy += 18; else if (player.dir === 'left') sx -= 18; else if (player.dir === 'right') sx += 18;
+        const hitRadius = 20;
+
+        if (currentLevel === 10) {
+            // 第十关 作者 受击逻辑
+            if (boss.invisTimer <= 0) { // 隐身时本体不可受击
+                // 打回火球 (HP > 5 时主要输出手段)
+                projectiles.forEach(p => {
+                    if (p.type === 'author_fire' && Math.hypot(sx - p.x, sy - p.y) < 25) {
+                        p.type = 'author_fire_reflected';
+                        let ang = Math.atan2(boss.y - p.y, boss.x - p.x);
+                        p.vx = Math.cos(ang)*6; p.vy = Math.sin(ang)*6;
+                        player.hasHit = true;
+                    }
+                });
+
+                // HP <= 5 时，作者暴走射箭，此时本体重新受到剑击伤害
+                if (boss.hp <= 5 && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) {
+                    boss.hp--; player.hasHit = true; bgFlash(); updateBossUI();
+                    // 瞬移
+                    boss.x = 40 + Math.random() * 176;
+                    boss.y = 40 + Math.random() * 112;
+                    if (boss.hp <= 0) {
+                        player.maxHp++; player.hp = player.maxHp;
+                        alert("难以置信！你竟然击溃了世界的创造者，游戏彻底通关！");
+                        currentLevel = 1; initBoss(); updateHearts();
+                        return; // 防止后续逻辑报错
+                    }
+                }
+            }
+
+            // 砍蠕虫 (任何时候都可砍)
+            if (boss.worms) { // 增加安全校验
+                for (let wIndex = boss.worms.length - 1; wIndex >= 0; wIndex--) {
+                    let w = boss.worms[wIndex];
+                    const tail = w.segments[w.numSegments - 1];
+                    if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + w.segmentRadius) {
+                        boss.worms.splice(wIndex, 1);
+                        player.hasHit = true; bgFlash();
+                    } else {
+                        for (let i = 0; i < w.numSegments - 1; i++) {
+                            if (Math.hypot(sx - w.segments[i].x, sy - w.segments[i].y) < hitRadius + w.segmentRadius) {
+                                player.hasHit = true; triggerPlayerKnockback(w.segments[i]); break;
+                            }
+                        }
+                    }
+                }
+            }
+            return;
+        }
+
+        if (currentLevel === 9) {
+            if (boss.shadowPhase === 2) {
+                // 打回火球
+                projectiles.forEach(p => {
+                    if (p.type === 'agahnim_fire' && Math.hypot(sx - p.x, sy - p.y) < 25) {
+                        p.type = 'agahnim_fire_reflected';
+                        let ang = Math.atan2(boss.y - p.y, boss.x - p.x);
+                        p.vx = Math.cos(ang)*4; p.vy = Math.sin(ang)*4;
+                        player.hasHit = true;
+                    }
+                });
+            } else if (boss.shadowPhase === 3) {
+                const tail = boss.segments[boss.numSegments - 1];
+                if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + boss.segmentRadius) { bossDamage9(); player.hasHit = true; } 
+                else { for (let i = 0; i < boss.numSegments - 1; i++) { if (Math.hypot(sx - boss.segments[i].x, sy - boss.segments[i].y) < hitRadius + boss.segmentRadius) { player.hasHit = true; triggerPlayerKnockback(boss.segments[i]); break; } } }
+            }
+            return;
+        }
+
+        // 旧 1-8 关逻辑
+        if (currentLevel === 1) {
+            const tail = boss.segments[boss.numSegments - 1];
+            if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + boss.segmentRadius) { boss.hp--; boss.invuln = 0; boss.speed = boss.baseSpeed * 2.5; player.hasHit = true; bgFlash(); setTimeout(() => { boss.speed = boss.baseSpeed; }, 2000); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第一关：长尾大空洞通过！\n即将进入第二关：壶洞窟"); currentLevel = 2; initBoss(); updateHearts(); return; } }
+            for (let i = 0; i < boss.numSegments - 1; i++) { if (Math.hypot(sx - boss.segments[i].x, sy - boss.segments[i].y) < hitRadius + boss.segmentRadius) { player.hasHit = true; triggerPlayerKnockback(boss.segments[i]); break; } }
+        } else if (currentLevel === 2) {
+            if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; if (boss.state === 'jar_move' || boss.state === 'jar_pop') { boss.state = 'jar_stunned'; boss.timer = 180; } else if (boss.state === 'genie_fly') { boss.hp--; boss.invuln = 0; boss.x = 40 + Math.random() * 176; boss.y = 48 + Math.random() * 104; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第二关：壶洞窟通过！\n即将进入第三关：巨眼史莱姆"); currentLevel = 3; initBoss(); updateHearts(); return; } } else if (boss.state === 'jar_stunned') { triggerPlayerKnockback(boss); } }
+        } else if (currentLevel === 3) {
+            if (boss.state === 'combined') { if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(sx - eye.x, sy - eye.y) < hitRadius + eye.radius) { eye.hp--; boss.hp--; updateHearts(); eye.invuln = 0; player.hasHit = true; bgFlash(); let angle = Math.atan2(eye.y - player.y, eye.x - player.x); eye.x += Math.cos(angle) * 15; eye.y += Math.sin(angle) * 15; if (boss.eyes[0].hp <= 0 && boss.eyes[1].hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第三关通过！进入第四关：灯笼鱼"); currentLevel = 4; initBoss(); updateHearts(); return; } } }); }
+        } else if (currentLevel === 4) {
+            if (Math.hypot(sx - boss.lure.x, sy - boss.lure.y) < hitRadius + boss.lure.radius) { boss.hp--; boss.invuln = 0; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第四关通过！进入第五关：史莱姆鳗鱼"); currentLevel = 5; initBoss(); updateHearts(); return; } } else { for (let i = boss.fairies.length - 1; i >= 0; i--) { if (Math.hypot(sx - boss.fairies[i].x, sy - boss.fairies[i].y) < hitRadius + 6) { boss.fairies.splice(i, 1); player.hasHit = true; break; } } if (!player.hasHit && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } }
+        } else if (currentLevel === 5) {
+            if ((boss.state === 'dragged_out' || boss.state === 'exposed') && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { boss.hp--; boss.invuln = 20; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第五关通过！进入第六关：脸孔魔王"); currentLevel = 6; initBoss(); updateHearts(); return; } }
+        } else if (currentLevel === 7) {
+            if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { bossDamage7(); player.hasHit = true; }
+        }
+    }
+
+    function checkPlayerBossCollision() {
+        if (player.invuln > 0 || player.state === 'hurt') return;
+        let hit = false; let damageSource = null;
+
+        if (currentLevel === 10) {
+            if ((!boss.invisTimer || boss.invisTimer <= 0) && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { 
+                hit = true; damageSource = boss; 
+                player.hp -= 1; // 额外扣1心（最后总计扣 2 颗心）
+            }
+            // 撞到小蠕虫
+            if (boss.worms) { // 安全校验
+                boss.worms.forEach(w => {
+                    if (player.z < 8) {
+                        for (let i = 0; i < w.numSegments; i++) {
+                            if (Math.hypot(player.x - w.segments[i].x, player.y - w.segments[i].y) < player.radius + w.segmentRadius) {
+                                hit = true; damageSource = w.segments[i]; break;
+                            }
+                        }
+                    }
+                });
+            }
+        } else if (currentLevel === 9) {
+            if (boss.state === 'shadow_warp' || boss.state === 'phase_transition') {
+                // 黑球状态不造成伤害，也无敌
+            } else if (boss.shadowPhase === 1 || boss.shadowPhase === 2 || boss.shadowPhase === 5) {
+                if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && Math.abs(player.z - (boss.z||0)) < 15) { hit = true; damageSource = boss; }
+            } else if (boss.shadowPhase === 3) {
+                if (player.z < 8) { for (let i = 0; i < boss.numSegments; i++) { if (Math.hypot(player.x - boss.segments[i].x, player.y - boss.segments[i].y) < player.radius + boss.segmentRadius) { hit = true; damageSource = boss.segments[i]; break; } } }
+            } else if (boss.shadowPhase === 4) {
+                if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) {
+                    if (player.state === 'dash') { bossDamage9(); triggerPlayerKnockback(boss); player.hasHit = true; } 
+                    else if (player.state !== 'dash') { hit = true; damageSource = boss; }
+                }
+                if (boss.trident && Math.hypot(player.x - boss.trident.x, player.y - boss.trident.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = boss.trident; }
+            } else if (boss.shadowPhase === 6) {
+                if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; }
+                let arm1x = boss.x + Math.cos(boss.armAngle)*45, arm1y = boss.y + Math.sin(boss.armAngle)*45;
+                let arm2x = boss.x + Math.cos(boss.armAngle + Math.PI)*45, arm2y = boss.y + Math.sin(boss.armAngle + Math.PI)*45;
+                if (Math.hypot(player.x - arm1x, player.y - arm1y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = {x:arm1x, y:arm1y}; }
+                if (Math.hypot(player.x - arm2x, player.y - arm2y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = {x:arm2x, y:arm2y}; }
+                
+                // 第六形态的眼睛被钩爪射中
+                if (boss.eyeOpen && hookshot.active && !hookshot.returning && Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius) { bossDamage9(); hookshot.returning = true; }
+            }
+        } else {
+            // 旧 1-8 关逻辑
+            if (currentLevel === 1) { if (player.z < 8) { for (let i = 0; i < boss.numSegments; i++) { const seg = boss.segments[i]; if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + boss.segmentRadius) { hit = true; damageSource = seg; break; } } } } 
+            else if (currentLevel === 2) { if (boss.state !== 'carried' && boss.state !== 'thrown') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && boss.state !== 'jar_stunned') { hit = true; damageSource = boss; } } } 
+            else if (currentLevel === 3) { if (boss.state === 'combined') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius * 1.2) { if (player.state === 'dash') { boss.ramHp--; boss.hp--; updateHearts(); triggerPlayerKnockback(boss); document.getElementById('gameCanvas').style.backgroundColor = "#ffffcc"; setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100); if (boss.ramHp <= 0) { boss.state = 'split'; boss.eyes = [ { x: boss.x - 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: -1.5, vy: -1.0, invuln: 0 }, { x: boss.x + 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: 1.5, vy: 1.0, invuln: 0 } ]; } } } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(player.x - eye.x, player.y - eye.y) < player.radius + eye.radius) { hit = true; damageSource = eye; } }); } } 
+            else if (currentLevel === 4) { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius - 4) { hit = true; damageSource = boss; } for (let i = 0; i < boss.fairies.length; i++) { if (Math.hypot(player.x - boss.fairies[i].x, player.y - boss.fairies[i].y) < player.radius + 6) { hit = true; damageSource = boss.fairies[i]; break; } } } 
+            else if (currentLevel === 5) { for (let i = 1; i <= 4; i++) { let tx = 128 + Math.cos(boss.tailAngle) * (i * 15); let ty = 96 + Math.sin(boss.tailAngle) * (i * 15); if (Math.hypot(player.x - tx, player.y - ty) < player.radius + 8) { hit = true; damageSource = {x: tx, y: ty}; break; } } } 
+            else if (currentLevel === 6) { for (let i = boss.tiles.length - 1; i >= 0; i--) { let t = boss.tiles[i]; if ((t.state === 'flying' || t.state === 'lifting') && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = t; boss.tiles.splice(i, 1); break; } } if (!hit && player.z === 0) { for (let h of boss.holes) { if ((h.state === 'open' || h.state === 'shrinking') && Math.hypot(player.x - h.x, player.y - h.y) < Math.max(0, h.radius - 4)) { player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60; if (player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); } return; } } } } 
+            else if (currentLevel === 7) { 
+                if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; } 
+                if (hookshot.active && !hookshot.returning && Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius) { bossDamage7(); hookshot.returning = true; }
+            } 
+            else if (currentLevel === 8) { if (boss.state === 'jump' && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; } }
+        }
+
+        // 敌方弹幕伤害判定
+        projectiles.forEach(p => {
+            if ((p.type === 'agahnim_fire' || p.type === 'firebat' || p.type === 'feather' || p.type === 'fire' || p.type === 'author_fire' || p.type === 'author_arrow' || !p.type) && Math.hypot(player.x - p.x, player.y - p.y) < 8 && player.z < 8) {
+                hit = true; damageSource = p; p.life = 0; // 标记删除命中的火球/羽毛，触发消失
+                if (p.type === 'author_fire' || p.type === 'author_arrow') player.hp -= 1; // 额外扣1心（最后总计扣 2 颗心）
+            }
+        });
+
+        if (hit && damageSource) {
+            player.hp--; updateHearts(); triggerPlayerKnockback(damageSource); player.invuln = 60; 
+            if (player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+        }
+    }
+
+    function triggerPlayerKnockback(sourceObj) {
+        player.state = 'hurt'; player.timer = 15; 
+        const angle = Math.atan2(player.y - sourceObj.y, player.x - sourceObj.x);
+        player.vx = Math.cos(angle) * 4; player.vy = Math.sin(angle) * 4;
+    }
+
+    function updateHearts() { let h = ""; for (let i = 0; i < player.maxHp; i++) h += i < player.hp ? "❤️" : "🖤"; heartsEl.innerText = h; }
+    function bgFlash() { document.getElementById('gameCanvas').style.backgroundColor = "#ffcccc"; setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = currentLevel === 4 ? "#2980b9" : "#c0d8b0"; }, 100); }
+    function updateBossUI() { bossHpFillEl.style.width = (Math.max(0, boss.hp) / boss.maxHp * 100) + "%"; }
+
+    // ==========================================
+    // 渲染系统 (全面整数化 | 0 优化性能)
+    // ==========================================
+    function draw() {
+        if (currentLevel === 4) {
+            ctx.fillStyle = "#2980b9"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#3498db"; ctx.fillRect(0, 0, canvas.width, 30); ctx.fillStyle = "rgba(255,255,255,0.2)"; for(let i=0; i<5; i++) { ctx.fillRect(Math.random()*canvas.width|0, Math.random()*30|0, 40, 2); }
+        } else if (currentLevel === 7) {
+            ctx.fillStyle = "#87CEEB"; ctx.fillRect(0,0,256,192); ctx.fillStyle = "#5e5e5e"; ctx.fillRect(32, 32, 192, 128); ctx.strokeStyle = "#444"; ctx.lineWidth = 2; ctx.strokeRect(32, 32, 192, 128);
+        } else if (currentLevel === 8) {
+            ctx.fillStyle = "#d35400"; ctx.fillRect(0,0,256,192); ctx.fillStyle = "#e67e22"; ctx.fillRect(10, 10, 236, 172); ctx.fillStyle = "#7f8c8d"; ctx.fillRect(0, 0, 256, 48); ctx.fillRect(0, 144, 256, 48); ctx.fillRect(0, 0, 48, 192); ctx.fillRect(208, 0, 48, 192);
+        } else if (currentLevel === 9) {
+            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height); // 梦魇暗黑背景
+            ctx.strokeStyle = "#333"; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); } for(let i=0; i<canvas.height; i+=16) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+        } else {
+            ctx.fillStyle = "#c0d8b0"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.strokeStyle = "#a0c090"; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); } for(let i=0; i<canvas.height; i+=16) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
+            ctx.fillStyle = "#5a5a5a"; ctx.fillRect(0, 0, canvas.width, 16); ctx.fillRect(0, 176, canvas.width, 16); ctx.fillRect(0, 0, 16, canvas.height); ctx.fillRect(240, 0, 16, canvas.height); 
+        }
+
+        // 第六关坑洞/地砖
+        if (currentLevel === 6) {
+            ctx.fillStyle = '#000'; boss.holes.forEach(h => { ctx.beginPath(); ctx.arc(h.x|0, h.y|0, h.radius|0, 0, Math.PI*2); ctx.fill(); });
+            if (boss.state !== 'hidden') { ctx.save(); ctx.globalAlpha = boss.alpha || 1; ctx.fillStyle = '#a8b898'; ctx.beginPath(); ctx.arc(boss.x|0, boss.y|0, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillRect((boss.x-14)|0, (boss.y-12)|0, 8, 8); ctx.fillRect((boss.x+6)|0, (boss.y-12)|0, 8, 8); ctx.fillRect((boss.x-10)|0, (boss.y+10)|0, 20, 6); ctx.restore(); }
+            ctx.fillStyle = '#c0d8b0'; ctx.strokeStyle = '#5a5a5a'; ctx.lineWidth = 2; boss.tiles.forEach(t => { if (t.state !== 'idle') { ctx.save(); ctx.translate(t.x|0, (t.y - t.z)|0); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-8, (-8 + t.z)|0, 16, 16); ctx.fillStyle = '#c0d8b0'; ctx.fillRect(-8, -8, 16, 16); ctx.strokeRect(-8, -8, 16, 16); ctx.restore(); } });
+        }
+
+        // 绘制 Boss
+        if (boss.hp > 0 && (boss.invuln === 0 || Math.floor(Date.now() / 50) % 2 === 0)) {
+            if (currentLevel === 10) {
+                if (!boss.invisTimer || boss.invisTimer <= 0) {
+                    ctx.save(); ctx.translate(boss.x|0, boss.y|0);
+                    // Author Body
+                    ctx.fillStyle = "#111"; ctx.fillRect(-12, -16, 24, 32); 
+                    ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(0, -18, 10, 0, Math.PI*2); ctx.fill();
+                    // 绿色的代码眼睛 { }
+                    ctx.fillStyle = "#0f0"; ctx.font = "12px monospace"; ctx.fillText("{ }", -9, -15);
+                    ctx.restore();
+                }
+                
+                // 绘制蠕虫大军
+                if (boss.worms) {
+                    boss.worms.forEach(w => {
+                        for (let i = w.numSegments - 1; i >= 0; i--) {
+                            const seg = w.segments[i];
+                            ctx.beginPath(); ctx.arc(seg.x|0, seg.y|0, w.segmentRadius|0, 0, Math.PI * 2);
+                            if (i === 0) ctx.fillStyle = "#d35400";
+                            else if (i === w.numSegments - 1) ctx.fillStyle = "#f1c40f";
+                            else ctx.fillStyle = "#e67e22";
+                            ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = "#000"; ctx.stroke();
+                        }
+                    });
+                }
+            } else if (currentLevel === 9) {
+                ctx.save(); ctx.translate(boss.x|0, (boss.y - (boss.z || 0))|0);
+                if (boss.state === 'shadow_warp' || boss.state === 'phase_transition') { 
+                    ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); 
+                    ctx.strokeStyle = "#444"; ctx.lineWidth = 2; ctx.stroke();
+                }
+                else if (boss.shadowPhase === 1) { ctx.fillStyle = "#262"; ctx.beginPath(); ctx.ellipse(0,0,boss.radius|0,(boss.radius*0.8)|0,0,0,Math.PI*2); ctx.fill(); }
+                else if (boss.shadowPhase === 2) { ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); ctx.fillStyle = "#f00"; ctx.fillRect(-4,-4,8,8); }
+                else if (boss.shadowPhase === 3) { ctx.restore(); for (let i = boss.numSegments - 1; i >= 0; i--) { const seg = boss.segments[i]; ctx.beginPath(); ctx.arc(seg.x|0, seg.y|0, boss.segmentRadius|0, 0, Math.PI * 2); ctx.fillStyle = (i===0)?"#222":(i===boss.numSegments-1)?"#fff":"#555"; ctx.fill(); ctx.stroke(); } ctx.save(); ctx.translate(boss.x|0, boss.y|0); }
+                else if (boss.shadowPhase === 4) { ctx.fillStyle = "#115"; ctx.fillRect(-boss.radius|0, -boss.radius|0, boss.radius*2|0, boss.radius*2|0); if (boss.trident) { ctx.restore(); ctx.fillStyle = "#ff0"; ctx.fillRect((boss.trident.x-5)|0, (boss.trident.y-5)|0, 10, 10); ctx.save(); ctx.translate(boss.x|0, boss.y|0); } }
+                else if (boss.shadowPhase === 5) { ctx.fillStyle = "#080"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); }
+                else if (boss.shadowPhase === 6) { ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); if(boss.eyeOpen) { ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(0,0,8,0,Math.PI*2); ctx.fill(); } else { ctx.fillStyle = "#000"; ctx.fillRect(-8,-2,16,4); } ctx.restore(); ctx.fillStyle = "#666"; ctx.beginPath(); ctx.arc((boss.x + Math.cos(boss.armAngle)*45)|0, (boss.y + Math.sin(boss.armAngle)*45)|0, 10, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((boss.x + Math.cos(boss.armAngle+Math.PI)*45)|0, (boss.y + Math.sin(boss.armAngle+Math.PI)*45)|0, 10, 0, Math.PI*2); ctx.fill(); ctx.save(); ctx.translate(boss.x|0, boss.y|0); }
+                ctx.restore();
+            } else if (currentLevel === 1) {
+                for (let i = boss.numSegments - 1; i >= 0; i--) { const seg = boss.segments[i]; ctx.beginPath(); ctx.arc(seg.x|0, seg.y|0, boss.segmentRadius|0, 0, Math.PI * 2); if (i === 0) ctx.fillStyle = "#d35400"; else if (i === boss.numSegments - 1) ctx.fillStyle = boss.speed > boss.baseSpeed ? "#e74c3c" : "#f1c40f"; else ctx.fillStyle = "#e67e22"; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = "#000"; ctx.stroke(); if (i === 0) { ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc((seg.x + Math.cos(boss.angle - 0.5)*5)|0, (seg.y + Math.sin(boss.angle - 0.5)*5)|0, 2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((seg.x + Math.cos(boss.angle + 0.5)*5)|0, (seg.y + Math.sin(boss.angle + 0.5)*5)|0, 2, 0, Math.PI*2); ctx.fill(); } }
+            } else if (currentLevel === 2) {
+                if (boss.state !== 'genie_fly') { ctx.fillStyle = boss.state === 'jar_stunned' ? '#7f8c8d' : '#2980b9'; ctx.beginPath(); ctx.arc(boss.x|0, boss.y|0, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke(); if (boss.jarHp < 3) { ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo((boss.x - 6)|0, (boss.y - 6)|0); ctx.lineTo((boss.x + 2)|0, (boss.y + 2)|0); if (boss.jarHp < 2) { ctx.moveTo((boss.x + 6)|0, (boss.y - 4)|0); ctx.lineTo((boss.x - 2)|0, (boss.y + 6)|0); } ctx.stroke(); } if (boss.state === 'jar_pop') { ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(boss.x|0, (boss.y - 14)|0, 8, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#000'; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect((boss.x - 4)|0, (boss.y - 16)|0, 2, 2); ctx.fillRect((boss.x + 2)|0, (boss.y - 16)|0, 2, 2); } } else { ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(boss.x|0, boss.y|0, 12, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#000'; ctx.stroke(); ctx.beginPath(); ctx.moveTo((boss.x - 8)|0, (boss.y + 8)|0); ctx.lineTo(boss.x|0, (boss.y + 18)|0); ctx.lineTo((boss.x + 8)|0, (boss.y + 8)|0); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect((boss.x - 5)|0, (boss.y - 2)|0, 3, 3); ctx.fillRect((boss.x + 2)|0, (boss.y - 2)|0, 3, 3); }
+            } else if (currentLevel === 3) {
+                if (boss.state === 'combined') { ctx.fillStyle = (boss.invuln > 0 && Math.floor(Date.now() / 50) % 2 === 0) ? '#fff' : '#27ae60'; ctx.save(); ctx.translate(boss.x|0, boss.y|0); ctx.scale(1.5, 1); ctx.beginPath(); ctx.arc(0, 0, boss.radius|0, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke(); ctx.restore(); if (boss.ramHp <= 2) { ctx.beginPath(); ctx.moveTo(boss.x|0, (boss.y - boss.radius)|0); ctx.lineTo(boss.x|0, (boss.y + boss.radius)|0); ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke(); } ctx.fillStyle = '#fff'; const eyeDist = 14; ctx.beginPath(); ctx.arc((boss.x - eyeDist)|0, (boss.y - 4)|0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.arc((boss.x + eyeDist)|0, (boss.y - 4)|0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc((boss.x - eyeDist)|0, (boss.y - 4)|0, 3, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc((boss.x + eyeDist)|0, (boss.y - 4)|0, 3, 0, Math.PI*2); ctx.fill(); } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0) { ctx.fillStyle = (eye.invuln > 0 && Math.floor(Date.now() / 50) % 2 === 0) ? '#fff' : '#27ae60'; ctx.beginPath(); ctx.arc(eye.x|0, eye.y|0, eye.radius|0, 0, Math.PI * 2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(eye.x|0, eye.y|0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(eye.x|0, eye.y|0, 3, 0, Math.PI*2); ctx.fill(); } }); }
+            } else if (currentLevel === 4) {
+                ctx.lineWidth = 2; ctx.strokeStyle = '#000'; boss.fairies.forEach(f => { ctx.fillStyle = "#ff9ff3"; ctx.beginPath(); ctx.arc(f.x|0, f.y|0, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#fff"; ctx.fillRect((f.x-2)|0, (f.y-2)|0, 2, 2); }); ctx.fillStyle = "#e67e22"; ctx.beginPath(); ctx.ellipse(boss.x|0, boss.y|0, boss.radius|0, (boss.radius*0.8)|0, 0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.beginPath(); ctx.moveTo((boss.x+boss.radius)|0, boss.y|0); ctx.lineTo((boss.x+boss.radius+15)|0, (boss.y-15)|0); ctx.lineTo((boss.x+boss.radius+15)|0, (boss.y+15)|0); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.moveTo((boss.x-boss.radius)|0, boss.y|0); ctx.lineTo((boss.x-10)|0, (boss.y+10)|0); ctx.lineTo((boss.x-boss.radius+10)|0, (boss.y+15)|0); ctx.fill(); ctx.fillStyle = "#fff"; ctx.beginPath(); ctx.arc((boss.x-10)|0, (boss.y-8)|0, 6, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle = "#000"; ctx.fillRect((boss.x-12)|0, (boss.y-9)|0, 3, 3); ctx.strokeStyle = "#7f8c8d"; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo((boss.x-5)|0, (boss.y-20)|0); ctx.quadraticCurveTo((boss.x-20)|0, (boss.y-30)|0, boss.lure.x|0, boss.lure.y|0); ctx.stroke(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.fillStyle = (boss.invuln > 0 && Math.floor(Date.now() / 50) % 2 === 0) ? "#fff" : "#f1c40f"; ctx.beginPath(); ctx.arc(boss.lure.x|0, boss.lure.y|0, boss.lure.radius|0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle = "rgba(241, 196, 15, 0.4)"; ctx.beginPath(); ctx.arc(boss.lure.x|0, boss.lure.y|0, (boss.lure.radius + 6 + Math.sin(Date.now()/100)*2)|0, 0, Math.PI*2); ctx.fill();
+            } else if (currentLevel === 5) {
+                ctx.fillStyle = '#000'; boss.holes.forEach(h => { ctx.beginPath(); ctx.arc(h.x|0, h.y|0, 16, 0, Math.PI*2); ctx.fill(); }); ctx.fillStyle = '#8e44ad'; ctx.strokeStyle = '#000'; ctx.lineWidth = 2; for (let i = 1; i <= 4; i++) { let tx = 128 + Math.cos(boss.tailAngle) * (i * 15); let ty = 96 + Math.sin(boss.tailAngle) * (i * 15); ctx.beginPath(); ctx.arc(tx|0, ty|0, 10 - i, 0, Math.PI*2); ctx.fill(); ctx.stroke(); } ctx.beginPath(); ctx.arc(128, 96, 12, 0, Math.PI*2); ctx.fill(); ctx.stroke(); if (boss.state !== 'hidden') { ctx.fillStyle = '#27ae60'; ctx.beginPath(); ctx.arc(boss.x|0, boss.y|0, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.stroke(); ctx.fillStyle = '#fff'; ctx.fillRect((boss.x - 6)|0, (boss.y - 4)|0, 4, 4); ctx.fillRect((boss.x + 2)|0, (boss.y - 4)|0, 4, 4); if (boss.state === 'dragged_out' || boss.state === 'exposed') { ctx.fillStyle = (boss.invuln > 0 && Math.floor(Date.now() / 50) % 2 === 0) ? '#fff' : '#e74c3c'; ctx.beginPath(); ctx.arc(boss.x|0, (boss.y + 10)|0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke(); } }
+            } else if (currentLevel === 7) {
+                ctx.save(); ctx.translate(boss.x|0, boss.y|0); if (boss.vx < 0) ctx.scale(-1, 1); ctx.fillStyle = "#4a2c1d"; ctx.beginPath(); ctx.ellipse(0, 0, 25, 12, 0, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#e0e0e0"; ctx.beginPath(); ctx.arc(20, -5, 10, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f1c40f"; ctx.beginPath(); ctx.moveTo(28, -8); ctx.lineTo(38, -5); ctx.lineTo(28, -2); ctx.fill(); let wingPos = Math.sin(Date.now()/150) * 20; ctx.fillStyle = "#3a1c0d"; ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(5, -25 - wingPos); ctx.lineTo(15, 0); ctx.fill(); ctx.restore();
+            } else if (currentLevel === 8) {
+                ctx.save(); ctx.translate(boss.x|0, boss.y|0); if (boss.state === 'jump') { ctx.fillStyle = "#c0392b"; ctx.beginPath(); ctx.arc(0, 0, 16, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = "#f1c40f"; ctx.fillRect(-6, -6, 4, 4); ctx.fillRect(2, -6, 4, 4); ctx.fillStyle = "#fff"; ctx.fillRect(-8, 4, 16, 4); } else { ctx.fillStyle = "rgba(192, 57, 43, 0.5)"; ctx.beginPath(); ctx.arc(0, 0, 10, 0, Math.PI*2); ctx.fill(); } ctx.restore();
+            }
+        }
+
+        // 画弹幕
+        projectiles.forEach(p => {
+            if (p.type === 'powder') { ctx.fillStyle = "#fff"; ctx.fillRect((p.x-5)|0, (p.y-5)|0, 10, 10); }
+            else if (p.type === 'rod_fire') { ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5, 0, Math.PI*2); ctx.fill(); }
+            else if (p.type === 'feather') { ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+            else if (p.type === 'fire') { ctx.fillStyle = '#e67e22'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+            else if (p.type === 'firebat') { ctx.fillStyle = '#c00'; ctx.fillRect((p.x-4)|0, (p.y-4)|0, 8, 8); }
+            else if (p.type === 'agahnim_fire') { ctx.fillStyle = '#0ff'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5, 0, Math.PI*2); ctx.fill(); }
+            else if (p.type === 'agahnim_fire_reflected') { ctx.fillStyle = '#ff0'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 6, 0, Math.PI*2); ctx.fill(); }
+            else if (p.type === 'arrow') { ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x|0, p.y|0); ctx.lineTo((p.x - p.vx*0.8)|0, (p.y - p.vy*0.8)|0); ctx.stroke(); ctx.fillStyle = '#f00'; ctx.fillRect((p.x-1.5)|0, (p.y-1.5)|0, 3, 3); }
+            else if (p.type === 'author_arrow') { ctx.strokeStyle = '#0f0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x|0, p.y|0); ctx.lineTo((p.x - p.vx*0.8)|0, (p.y - p.vy*0.8)|0); ctx.stroke(); ctx.fillStyle = '#000'; ctx.fillRect((p.x-1.5)|0, (p.y-1.5)|0, 3, 3); }
+            else if (p.type === 'author_fire') { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#0f0'; ctx.lineWidth = 1.5; ctx.stroke(); }
+            else if (p.type === 'author_fire_reflected') { ctx.fillStyle = '#0f0'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 6, 0, Math.PI*2); ctx.fill(); }
+            else { ctx.fillStyle = '#f39c12'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
+        });
+
+        // 绘制炸弹与爆炸
+        bombs.forEach(b => {
+            if (b.state === 'ticking') {
+                ctx.fillStyle = b.timer % 10 < 5 ? "#000" : "#e74c3c";
+                ctx.beginPath(); ctx.arc(b.x|0, b.y|0, 6, 0, Math.PI*2); ctx.fill();
+            } else if (b.state === 'exploding') {
+                let r = 24 * ((15 - b.timer) / 15);
+                ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.beginPath(); ctx.arc(b.x|0, b.y|0, r|0, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = 'rgba(241, 196, 15, 0.8)'; ctx.beginPath(); ctx.arc(b.x|0, b.y|0, (r * 0.7)|0, 0, Math.PI*2); ctx.fill();
+            }
+        });
+
+        // 钩爪
+        if (hookshot.active) {
+            ctx.strokeStyle = "#8e44ad"; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(player.x|0, (player.y - player.z)|0); ctx.lineTo(hookshot.x|0, hookshot.y|0); ctx.stroke();
+            ctx.fillStyle = "#9b59b6"; ctx.fillRect((hookshot.x - 3)|0, (hookshot.y - 3)|0, 6, 6);
+        }
+
+        // 玩家
+        if (player.invuln % 4 < 2) {
+            if (player.z > 0 && currentLevel !== 4 && currentLevel !== 9 && currentLevel !== 10) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(player.x|0, player.y|0, 8, 4, 0, 0, Math.PI*2); ctx.fill(); }
+            ctx.save(); ctx.translate(player.x|0, (player.y - player.z)|0); 
+            
+            if (player.freezeTimer > 0) {
+                ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
+                ctx.fillRect(-10, -12, 20, 16);
+            }
+            
+            ctx.fillStyle = "#2ecc71"; ctx.fillRect(-6, -8, 12, 10);
+            ctx.fillStyle = "#f1c40f"; ctx.fillRect(-4, -4, 8, 6);
+            if (player.carrying) { ctx.fillStyle = '#7f8c8d'; ctx.beginPath(); ctx.arc(0, -14, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke(); }
+            if (player.state === 'attack') { ctx.fillStyle = "#ecf0f1"; ctx.strokeStyle = "#000"; ctx.lineWidth = 1; let sx = 0, sy = 0, sw = 0, sh = 0; if (player.dir === 'up') { sx = -2; sy = -20; sw = 4; sh = 12; } if (player.dir === 'down') { sx = -2; sy = 8; sw = 4; sh = 12; } if (player.dir === 'left') { sx = -20; sy = -2; sw = 12; sh = 4; } if (player.dir === 'right') { sx = 8; sy = -2; sw = 12; sh = 4; } ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh); ctx.beginPath(); ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 2; if (player.dir === 'up') ctx.arc(0, 0, 16, Math.PI+0.5, Math.PI*2-0.5); if (player.dir === 'down') ctx.arc(0, 0, 16, 0.5, Math.PI-0.5); if (player.dir === 'left') ctx.arc(0, 0, 16, Math.PI/2+0.5, Math.PI*1.5-0.5); if (player.dir === 'right') ctx.arc(0, 0, 16, -Math.PI/2+0.5, Math.PI/2-0.5); ctx.stroke(); } else if (player.state === 'dash') { ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(0, 8, 6, 0, Math.PI*2); ctx.fill(); } else if (player.state !== 'hookshot') { ctx.fillStyle = "#c0392b"; if (currentLevel === 4) { if (player.dir === 'left') ctx.fillRect(-8, -4, 4, 12); if (player.dir === 'right') ctx.fillRect(4, -4, 4, 12); } else { if (player.dir === 'up') ctx.fillRect(-8, -4, 16, 4); if (player.dir === 'down') ctx.fillRect(-8, 4, 16, 4); if (player.dir === 'left') ctx.fillRect(-8, -4, 4, 12); if (player.dir === 'right') ctx.fillRect(4, -4, 4, 12); } }
+            ctx.restore();
+        }
+    }
+
+    let lastTime = 0;
+    function gameLoop(timestamp) { 
+        if (timestamp - lastTime >= 1000 / FPS) { 
+            update(); 
+            draw(); 
+            lastTime = timestamp; 
+        } 
+        requestAnimationFrame(gameLoop); 
+    }
     
-      const colliders = [];
-      const roomTriggers = [];
-      const animatedDoors = [];
-    
-      const interactableObjects = [];
-      let raycaster = new THREE.Raycaster();
-      let mouseCenter = new THREE.Vector2(0, 0);
-      let currentHover = null;
-      let isUsingFurniture = false;
-      let preUsePosition = new THREE.Vector3();
-      let isSprinting = false;
-      let msgTimeout = null;
-
-
-      let textures = {};
-
-
-      function showTempMessage(msg) {
-          const el = document.getElementById('temp-msg');
-          el.innerText = msg;
-          el.style.opacity = 1;
-          if(msgTimeout) clearTimeout(msgTimeout);
-          msgTimeout = setTimeout(() => { el.style.opacity = 0; }, 2500);
-      }
-
-
-      function createProceduralTextures() {
-          const canvasBrick = document.createElement('canvas');
-          canvasBrick.width = 256; canvasBrick.height = 256;
-          const ctxB = canvasBrick.getContext('2d');
-          ctxB.fillStyle = '#8B3A3A'; ctxB.fillRect(0,0,256,256);
-          for(let i=0;i<2000;i++){ ctxB.fillStyle=`rgba(0,0,0,${Math.random()*0.15})`; ctxB.fillRect(Math.random()*256,Math.random()*256,2,2); }
-          ctxB.fillStyle = '#5c1f1f';
-          for(let i=0; i<256; i+=32) {
-              let off = (i%64===0)?0:32;
-              for(let j=0; j<256; j+=64) ctxB.fillRect(j+off, i, 60, 28);
-          }
-          textures.brick = new THREE.CanvasTexture(canvasBrick);
-          textures.brick.wrapS = textures.brick.wrapT = THREE.RepeatWrapping;
-
-
-          const canvasWood = document.createElement('canvas');
-          canvasWood.width = 256; canvasWood.height = 256;
-          const ctxWood = canvasWood.getContext('2d');
-          ctxWood.fillStyle = '#d3a567'; ctxWood.fillRect(0,0,256,256);
-          ctxWood.strokeStyle = '#b88645'; ctxWood.lineWidth = 2;
-          for(let i=0; i<256; i+=16) {
-              ctxWood.beginPath(); ctxWood.moveTo(i, 0); ctxWood.lineTo(i, 256); ctxWood.stroke();
-          }
-          textures.wood = new THREE.CanvasTexture(canvasWood);
-          textures.wood.wrapS = textures.wood.wrapT = THREE.RepeatWrapping;
-
-
-          const canvasTile = document.createElement('canvas');
-          canvasTile.width = 128; canvasTile.height = 128;
-          const ctxT = canvasTile.getContext('2d');
-          ctxT.fillStyle = '#ecf0f1'; ctxT.fillRect(0,0,128,128);
-          ctxT.strokeStyle = '#bdc3c7'; ctxT.lineWidth = 2;
-          ctxT.strokeRect(0,0,64,64); ctxT.strokeRect(64,64,64,64);
-          textures.tile = new THREE.CanvasTexture(canvasTile);
-          textures.tile.wrapS = textures.tile.wrapT = THREE.RepeatWrapping;
-
-
-          const canvasWall = document.createElement('canvas');
-          canvasWall.width = 128; canvasWall.height = 128;
-          const ctxW = canvasWall.getContext('2d');
-          ctxW.fillStyle = '#f8f9fa'; ctxW.fillRect(0,128,128,128);
-          ctxW.fillStyle = '#dcdde1'; ctxW.fillRect(0, 120, 128, 8);
-          textures.innerWall = new THREE.CanvasTexture(canvasWall);
-          textures.innerWall.wrapS = textures.innerWall.wrapT = THREE.RepeatWrapping;
-
-
-          const canvasBathWall = document.createElement('canvas');
-          canvasBathWall.width = 128; canvasBathWall.height = 128;
-          const ctxBW = canvasBathWall.getContext('2d');
-          ctxBW.fillStyle = '#e0f7fa';
-          ctxBW.fillRect(0,0,128,128);
-          ctxBW.strokeStyle = '#b2ebf2'; ctxBW.lineWidth = 2;
-          for(let i=0; i<=128; i+=16) {
-              ctxBW.beginPath(); ctxBW.moveTo(i, 0); ctxBW.lineTo(i, 128); ctxBW.stroke();
-              ctxBW.beginPath(); ctxBW.moveTo(0, i); ctxBW.lineTo(128, i); ctxBW.stroke();
-          }
-          ctxBW.fillStyle = '#b2bec3'; ctxBW.fillRect(0, 120, 128, 8);
-          textures.bathWall = new THREE.CanvasTexture(canvasBathWall);
-          textures.bathWall.wrapS = textures.bathWall.wrapT = THREE.RepeatWrapping;
-      }
-
-
-      function init() {
-          scene = new THREE.Scene();
-          scene.background = new THREE.Color(0x87ceeb);
-          scene.fog = new THREE.Fog(0x87ceeb, 15, 500);
-
-
-          camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1500);
-          camera.rotation.order = 'YXZ';
-          camera.position.set(0, PLAYER_HEIGHT, 0);
-
-
-          renderer = new THREE.WebGLRenderer({ antialias: true });
-          renderer.setSize(window.innerWidth, window.innerHeight);
-          renderer.setPixelRatio(window.devicePixelRatio);
-        
-          renderer.toneMapping = THREE.ACESFilmicToneMapping;
-          renderer.toneMappingExposure = 1.2;
-          renderer.shadowMap.enabled = true;
-          renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-          document.body.appendChild(renderer.domElement);
-
-
-          clock = new THREE.Clock();
-          createProceduralTextures();
-
-
-          scene.add(new THREE.AmbientLight(0xffffff, 0.85));
-          const sun = new THREE.DirectionalLight(0xffffff, 1.0);
-          sun.position.set(100, 200, 50);
-          sun.castShadow = true;
-          sun.shadow.mapSize.width = 2048;
-          sun.shadow.mapSize.height = 2048;
-          sun.shadow.camera.near = 0.5;
-          sun.shadow.camera.far = 800;
-          sun.shadow.camera.left = -200;
-          sun.shadow.camera.right = 200;
-          sun.shadow.camera.top = 200;
-          sun.shadow.camera.bottom = -200;
-          sun.shadow.bias = -0.0005;
-          scene.add(sun);
-
-
-          buildFullCampus();
-          setupControls();
-        
-          window.addEventListener('resize', onResize);
-          animate();
-      }
-
-
-      function addBox(x, y, z, w, h, d, mat, addToCollider = true, castShadow = true, receiveShadow = true) {
-          const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
-          mesh.position.set(x, y, z);
-          mesh.castShadow = castShadow;
-          mesh.receiveShadow = receiveShadow;
-          scene.add(mesh);
-          if (addToCollider) {
-              colliders.push({ minX: x-w/2, maxX: x+w/2, minZ: z-d/2, maxZ: z+d/2, minY: y-h/2, maxY: y+h/2 });
-          }
-          return mesh;
-      }
-
-
-      function addInteractable(x, y, z, w, h, d, mat, actionText, actionMsg, extraData = {}) {
-          const cloneMat = mat.clone();
-          const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloneMat);
-          mesh.position.set(x, y, z);
-          mesh.castShadow = true; mesh.receiveShadow = true;
-          scene.add(mesh);
-        
-          mesh.userData = {
-              interactable: true,
-              actionText: actionText,
-              msg: actionMsg,
-              baseEmissive: cloneMat.emissive ? cloneMat.emissive.getHex() : 0x000000,
-              ...extraData
-          };
-          interactableObjects.push(mesh);
-          return mesh;
-      }
-
-
-      function addFurniture(x, y, z, w, h, d, mat, sitYOffset = 0.8, actionText="sit down", msg="You sat down.") {
-          return addInteractable(x, y, z, w, h, d, mat, actionText, msg, { type: 'sit', usePos: new THREE.Vector3(x, y + sitYOffset, z) });
-      }
-
-
-      function createDoor(x, z, facing, doorW) {
-          const doorMat = new THREE.MeshPhongMaterial({ color: 0x4a3b32 });
-          const group = new THREE.Group();
-        
-          let pivotX = x, pivotZ = z;
-          let meshX = 0, meshZ = 0;
-          let w = doorW, d = 0.2;
-
-
-          if(facing === 'N' || facing === 'S') {
-              pivotX = x - doorW/2; meshX = doorW/2;
-          } else {
-              pivotZ = z - doorW/2; meshZ = doorW/2;
-              w = 0.2; d = doorW;
-          }
-
-
-          group.position.set(pivotX, 0, pivotZ);
-          const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(w===0.2?0.2:doorW, 4.45, w===0.2?doorW:0.2), doorMat);
-          doorMesh.position.set(meshX, 2.28, meshZ);
-          doorMesh.castShadow = true;
-          group.add(doorMesh);
-          scene.add(group);
-
-
-          let openRot = (facing === 'N') ? Math.PI/2 : (facing === 'S') ? -Math.PI/2 : (facing === 'E') ? -Math.PI/2 : Math.PI/2;
-          animatedDoors.push({ group: group, targetRot: 0, currentRot: 0, openRot: openRot, px: x, pz: z, triggerDist: 4.5 });
-      }
-
-
-      function createStallDoor(x, z, facing, doorW, colorHex) {
-          const doorMat = new THREE.MeshPhongMaterial({ color: colorHex });
-          const group = new THREE.Group();
-          let pivotX = x, pivotZ = z;
-          let meshX = 0, meshZ = 0;
-          let w = doorW, d = 0.1;
-
-
-          if(facing === 'N' || facing === 'S') {
-              pivotX = x - doorW/2; meshX = doorW/2;
-          } else {
-              pivotZ = z - doorW/2; meshZ = doorW/2;
-              w = 0.1; d = doorW;
-          }
-
-
-          group.position.set(pivotX, 0, pivotZ);
-          const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(w===0.1?0.1:doorW, 2.6, w===0.1?doorW:0.1), doorMat);
-          doorMesh.position.set(meshX, 1.5, meshZ);
-          doorMesh.castShadow = true;
-          group.add(doorMesh);
-          scene.add(group);
-
-
-          let openRot = (facing === 'N') ? Math.PI/2 : (facing === 'S') ? -Math.PI/2 : (facing === 'E') ? -Math.PI/2 : Math.PI/2;
-          animatedDoors.push({ group: group, targetRot: 0, currentRot: 0, openRot: openRot, px: x, pz: z, triggerDist: 2.5 });
-      }
-
-
-      function addCeilingLight(x, z, w, d, h) {
-          const lightMat = new THREE.MeshBasicMaterial({color: 0xffffff});
-          addBox(x, h - 0.05, z, w*0.3, 0.1, d*0.3, lightMat, false, false, false);
-      }
-
-
-      function buildGlobalRoof() {
-          const extRoofMat = new THREE.MeshPhongMaterial({color: 0x2d3436});
-          addBox(0, 5.9, -40, 54, 0.4, 204, extRoofMat, false, true, true);
-          addBox(0, 5.9, 0, 184, 0.4, 44, extRoofMat, false, true, true);
-      }
-
-
-      function buildHollowRoom(x, z, w, d, roomName, type, doorFacing) {
-          const h = 5.5;
-          const wt = 0.8;
-          const doorW = 3.5;
-
-
-          let innerTex = textures.innerWall.clone();
-          if (type.includes('bath')) innerTex = textures.bathWall.clone();
-        
-          const floorMat = new THREE.MeshPhongMaterial({ map: (type.includes('bath')||type==='corridor') ? textures.tile : textures.wood });
-          floorMat.map.repeat.set(w/4, d/4);
-          const roofMat = new THREE.MeshPhongMaterial({ color: 0xffffff, emissive: 0x222222 });
-
-
-          roomTriggers.push({ minX: x-w/2, maxX: x+w/2, minZ: z-d/2, maxZ: z+d/2, name: roomName, type: type });
-
-
-          const floor = new THREE.Mesh(new THREE.PlaneGeometry(w - 0.1, d - 0.1), floorMat);
-          floor.rotation.x = -Math.PI/2; floor.position.set(x, 0.05, z); floor.receiveShadow = true; scene.add(floor);
-        
-          addBox(x, 5.6, z, w + wt*2 - 0.1, 0.2, d + wt*2 - 0.1, roofMat, false, false, false);
-        
-          const buildWall = (cx, cz, ww, wd, isDoorWall) => {
-              const currentInnerTex = innerTex.clone();
-              currentInnerTex.repeat.set(Math.max(ww, wd) / 4, h / 4);
-              const wallMat = new THREE.MeshPhongMaterial({ map: currentInnerTex });
-
-
-              const shrinkW = ww > wd ? ww - 0.02 : ww;
-              const shrinkD = wd > ww ? wd - 0.02 : wd;
-
-
-              if (!isDoorWall) {
-                  addBox(cx, h/2, cz, shrinkW, h, shrinkD, wallMat);
-              } else {
-                  const isNS = (ww > wd);
-                  const sideL = isNS ? (ww - doorW)/2 : ww;
-                  const sideW = isNS ? ww : (wd - doorW)/2;
-                
-                  if (isNS) {
-                      addBox(cx - ww/2 + sideL/2, h/2, cz, sideL - 0.02, h, shrinkD, wallMat);
-                      addBox(cx + ww/2 - sideL/2, h/2, cz, sideL - 0.02, h, shrinkD, wallMat);
-                      addBox(cx, h - 0.5, cz, doorW - 0.02, 1, shrinkD, wallMat);
-                  } else {
-                      addBox(cx, h/2, cz - wd/2 + sideW/2, shrinkW, h, sideW - 0.02, wallMat);
-                      addBox(cx, h/2, cz + wd/2 - sideW/2, shrinkW, h, sideW - 0.02, wallMat);
-                      addBox(cx, h - 0.5, cz, shrinkW, 1, doorW - 0.02, wallMat);
-                  }
-                  createDoor(cx, cz, doorFacing, doorW);
-              }
-          };
-
-
-          buildWall(x, z - d/2, w, wt, doorFacing === 'N');
-          buildWall(x, z + d/2, w, wt, doorFacing === 'S');
-          buildWall(x - w/2, z, wt, d, doorFacing === 'W');
-          buildWall(x + w/2, z, wt, d, doorFacing === 'E');
-
-
-          populateInterior(x, z, w, d, type, doorFacing);
-      }
-
-
-      function populateInterior(x, z, w, d, type, doorFacing) {
-          const woodMat = new THREE.MeshPhongMaterial({color: 0x8d6e63});
-          const metalMat = new THREE.MeshPhongMaterial({color: 0x7f8c8d});
-          const whiteMat = new THREE.MeshPhongMaterial({color: 0xffffff});
-          const blackMat = new THREE.MeshPhongMaterial({color: 0x2d3436});
-          const chairMat = new THREE.MeshPhongMaterial({color: 0x34495e});
-          const greenMat = new THREE.MeshPhongMaterial({color: 0x27ae60});
-
-
-          if (type.includes('bath')) {
-              const signMat = new THREE.MeshPhongMaterial({color: 0x27ae60});
-              const msg = type === 'boys_bath' ? "Boy's bathroom (Boys)" : "Girl's bathroom (Girls)";
-              let sz = z, sx = x, sw = 1.5, sh = 0.6, sd = 0.1;
-            
-              if (doorFacing === 'S') { sz = z + d/2 + 0.42; }
-              else if (doorFacing === 'N') { sz = z - d/2 - 0.42; }
-              else if (doorFacing === 'E') { sx = x + w/2 + 0.42; sw = 0.1; sd = 1.5; }
-              else if (doorFacing === 'W') { sx = x - w/2 - 0.42; sw = 0.1; sd = 1.5; }
-            
-              addInteractable(sx, 4.8, sz, sw, sh, sd, signMat, "Read the sign", msg);
-          }
-
-
-          const addTrash = (px, pz) => {
-              addInteractable(px, 0.6, pz, 0.8, 1.2, 0.8, new THREE.MeshPhongMaterial({color: 0x2c3e50}), "Throwing away trash", "You throwing away trash");
-          };
-          const addPlant = (px, pz) => {
-              addBox(px, 0.5, pz, 1, 1, 1, whiteMat, false);
-              addInteractable(px, 1.8, pz, 1.5, 1.6, 1.5, greenMat, "Watering", "After watering the plant, it looks more vibrant");
-          };
-
-
-          if (type === 'class') {
-              addBox(x, 0.9, z - d/2 + 2.5, 4, 0.1, 2, woodMat, false);
-              addBox(x - 1.9, 0.45, z - d/2 + 2.5, 0.1, 0.9, 1.8, woodMat, false);
-              addBox(x + 1.9, 0.45, z - d/2 + 2.5, 0.1, 0.9, 1.8, woodMat, false);
-              addBox(x, 0.45, z - d/2 + 1.6, 3.8, 0.9, 0.1, woodMat, false);
-            
-              const pcMat = new THREE.MeshPhongMaterial({color: 0x2d3436, emissive: 0x000000});
-              addInteractable(x, 1.3, z - d/2 + 2.8, 0.8, 0.6, 0.1, pcMat, "Operating a computer", "You open a tab");
-              addBox(x, 1.0, z - d/2 + 2.8, 0.2, 0.3, 0.2, blackMat, false);
-            
-              addInteractable(x + 1.5, 1.3, z - d/2 + 2.5, 0.6, 0.6, 0.6, new THREE.MeshPhongMaterial({color: 0x3498db}), "spin", "The globe was rotated");
-
-
-              addFurniture(x, 0.45, z - d/2 + 1.0, 1, 0.1, 1, blackMat, 0.5, "sit down", "You sat down");
-              addBox(x, 0.9, z - d/2 + 0.6, 1, 0.8, 0.1, blackMat, false);
-            
-              addInteractable(x, 3, z - d/2 + 0.5, 10, 3.5, 0.1, whiteMat, "Erasing the blackboard", "You erased the blackboard");
-            
-              addInteractable(x, 5, z - d/2 + 0.55, 1.2, 1.2, 0.1, new THREE.MeshPhongMaterial({color: 0xecf0f1}), "Check the time", "Tick-tock, tick-tock, there are still 15 minutes until class ends");
-              addInteractable(x - 4, 5, z - d/2 + 0.55, 1, 0.8, 0.5, blackMat, "Listen to the radio", "Sorry to interrupt, we won't be able to go outside because there's an activity.");
-
-
-              addTrash(x - 4, z - d/2 + 2);
-
-
-              const startX = x - w/2 + 4; const startZ = z - d/2 + 7;
-              const cols = Math.floor((w-6)/4);
-              for (let r = 0; r < 3; r++) {
-                  for (let c = 0; c < cols; c++) {
-                      let dx = startX + c * 4; let dz = startZ + r * 3.5;
-                      addInteractable(dx, 0.8, dz, 2.2, 0.1, 1.5, woodMat, "Check the desks", "There's a math book on the desk");
-                      addBox(dx, 0.4, dz, 2.0, 0.8, 1.3, metalMat, false);
-                      addFurniture(dx, 0.45, dz + 1.3, 1.0, 0.1, 1.0, chairMat, 0.5, "Listen to the lecture", "Sat down and learning");
-                      addBox(dx, 0.9, dz + 1.6, 1.0, 0.8, 0.1, chairMat, false);
-                      addBox(dx - 0.4, 0.225, dz + 0.8, 0.1, 0.45, 0.1, metalMat, false);
-                      addBox(dx + 0.4, 0.225, dz + 0.8, 0.1, 0.45, 0.1, metalMat, false);
-                      addBox(dx - 0.4, 0.225, dz + 1.6, 0.1, 0.45, 0.1, metalMat, false);
-                      addBox(dx + 0.4, 0.225, dz + 1.6, 0.1, 0.45, 0.1, metalMat, false);
-                  }
-              }
-          }
-          else if (type === 'boys_bath') {
-              addBox(x - w/2 + 2, 1.2, z, 1.5, 0.8, d-6, whiteMat, false);
-              addInteractable(x - w/2 + 2.5, 1.5, z, 0.5, 0.2, 0.5, metalMat, "Wash hands", "Splash... washed hands carefully with hand sanitizer.");
-              addInteractable(x - w/2 + 1.1, 2.8, z, 0.1, 2.5, d-6, new THREE.MeshPhongMaterial({color: 0x81ecec}), "Looking in the mirror", "Looks good");
-              addInteractable(x - w/2 + 1.2, 1.8, z - d/2 + 3, 0.5, 0.6, 0.4, metalMat, "blow dry", "Whoosh... The strong hot air dried your hands.");
-            
-              for (let i = 0; i < 3; i++) {
-                  let pz = z - d/2 + 4 + i*2.5;
-                  addInteractable(x + w/2 - 1, 1.3, pz, 0.6, 1.2, 0.8, whiteMat, "Use", "Automatic sensor flushing... Splash!");
-                  addBox(x + w/2 - 1.5, 1.6, pz + 1.25, 2, 2.2, 0.1, new THREE.MeshPhongMaterial({color: 0x3498db}), false);
-              }
-            
-              let stallZ = z + d/2 - 2.5;
-              addBox(x + w/2 - 2, 1.8, stallZ - 1.5, 4, 3.5, 0.1, new THREE.MeshPhongMaterial({color: 0x3498db}), false);
-              createStallDoor(x + w/2 - 4, stallZ, 'W', 3, 0x3498db);
-              addFurniture(x + w/2 - 1, 0.4, stallZ, 0.6, 0.4, 0.8, whiteMat, 0.6, "Go to the toilet", "Using the toilet");
-              addInteractable(x + w/2 - 1, 0.9, stallZ - 0.3, 0.8, 0.6, 0.3, whiteMat, "flushing", "Press the flush button, and the vortex will take everything away");
-          }
-          else if (type === 'girls_bath') {
-              addBox(x - w/2 + 2, 1.2, z, 1.5, 0.8, d-6, whiteMat, false);
-              addInteractable(x - w/2 + 2.5, 1.5, z, 0.5, 0.2, 0.5, metalMat, "Wash hands", "Splash... Washing away the day's fatigue.");
-              addInteractable(x - w/2 + 1.1, 2.8, z, 0.1, 2.5, d-6, new THREE.MeshPhongMaterial({color: 0x81ecec}), "Looking in the mirror", "My hairstyle is perfect today.");
-            
-              for (let i = 0; i < 4; i++) {
-                  let pz = z - d/2 + 3.5 + i*2.8;
-                  addBox(x + w/2 - 2.5, 1.8, pz - 1.4, 5, 3.5, 0.1, new THREE.MeshPhongMaterial({color: 0xf06292}), false);
-                  createStallDoor(x + w/2 - 4, pz, 'W', 2.8, 0xf06292);
-                  addFurniture(x + w/2 - 1, 0.4, pz, 0.6, 0.4, 0.8, whiteMat, 0.6, "Use", "The cubicle was very quiet");
-                  addInteractable(x + w/2 - 1, 0.9, pz - 0.3, 0.8, 0.6, 0.3, whiteMat, "Flushing", "Splash...");
-              }
-          }
-          else if (type === 'snack') {
-              addInteractable(x - w/2 + 2.5, 2, z - d/2 + 3, 2.5, 4, 2.5, new THREE.MeshPhongMaterial({color: 0xe74c3c}), "Buy a drink", "Click... A can of ice-cold Coke fell out!");
-              addInteractable(x - w/2 + 2.5, 2, z - d/2 + 6, 2.5, 4, 2.5, new THREE.MeshPhongMaterial({color: 0x3498db}), "Buy snacks", "Click... A bag of potato chips fell out!");
-              addBox(x - w/2 + 2.5, 1, z - d/2 + 9, 2.5, 2, 2.5, whiteMat, false);
-              addInteractable(x - w/2 + 2.5, 2.3, z - d/2 + 9, 1.5, 0.6, 1.5, blackMat, "heating", "Buzz buzz buzz... Ding! The hot dog is heated up.");
-              addInteractable(x - w/2 + 2.5, 2.2, z - d/2 + 11, 1, 0.8, 1, new THREE.MeshPhongMaterial({color: 0x95a5a6}), "Coffee", "Hmm... It's broken.");
-            
-              for (let i=0; i<2; i++) {
-                  let cx = x + 3; let cz = z - 2 + i*6;
-                  addBox(cx, 1, cz, 3, 0.1, 3, woodMat, false);
-                  addBox(cx, 0.5, cz, 0.5, 1, 0.5, metalMat, false);
-                  addFurniture(cx - 2, 0.45, cz, 0.8, 0.1, 0.8, whiteMat, 0.6, "Rest", "Sat down and rest");
-                  addBox(cx - 2, 0.9, cz - 0.4, 0.8, 0.8, 0.1, whiteMat, false);
-                  addFurniture(cx + 2, 0.45, cz, 0.8, 0.1, 0.8, whiteMat, 0.6, "Rest", "Sat down and thinking...");
-                  addBox(cx + 2, 0.9, cz + 0.4, 0.8, 0.8, 0.1, whiteMat, false);
-              }
-              addTrash(x - w/2 + 2, z - d/2 + 13);
-          }
-          else if (type === 'office') {
-              for (let i = -1; i <= 1; i+=2) {
-                  for (let j = -1; j <= 1; j+=2) {
-                      let ox = x + i*4; let oz = z + j*4;
-                      addBox(ox, 1.0, oz, 4, 0.1, 2.5, new THREE.MeshPhongMaterial({color: 0xecf0f1}), false);
-                      addBox(ox - 1.8, 0.5, oz, 0.1, 1, 2.3, metalMat, false);
-                      addBox(ox + 1.8, 0.5, oz, 0.1, 1, 2.3, metalMat, false);
-                    
-                      addInteractable(ox, 1.4, oz - 0.5, 1.2, 0.7, 0.1, new THREE.MeshPhongMaterial({color: 0x2d3436}), "Check grades", "Opened the academic affairs system, and the screen was filled with transcripts...");
-                      addBox(ox, 1.1, oz - 0.5, 0.2, 0.3, 0.2, blackMat, false);
-                      addFurniture(ox, 0.45, oz + 1.2, 1.0, 0.1, 1.0, blackMat, 0.6, "Sit", "Sit in a comfortable ergonomic chair.");
-                      addBox(ox, 0.9, oz + 1.6, 1.0, 0.8, 0.1, blackMat, false);
-                  }
-              }
-              addInteractable(x - w/2 + 2, 2, z - d/2 + 2, 2, 4, 1.5, metalMat, "Open", "It's locked, there must be something inside");
-              addInteractable(x - w/2 + 2, 1.2, z + d/2 - 2, 1.5, 0.8, 1.5, whiteMat, "print", "buzz... you have no paper");
-              addPlant(x + w/2 - 2, z - d/2 + 2);
-          }
-          else if (type === 'library') {
-              addBox(x - w/2 + 4, 1.2, z - d/2 + 6, 6, 1.2, 2.5, woodMat, false);
-              addInteractable(x - w/2 + 4, 1.9, z - d/2 + 6, 1.2, 0.7, 0.1, new THREE.MeshPhongMaterial({color: 0x2d3436}), "Check out", "You check out the book");
-              addFurniture(x - w/2 + 4, 0.6, z - d/2 + 8, 1, 0.8, 1, blackMat, 0.6, "Go on duty", "Being an administrator carries a heavy responsibility...");
-            
-              for (let i = -1; i <= 2; i++) {
-                  let sx = x + i*6;
-                  addBox(sx, 2.5, z - 3, 1.5, 5, 14, woodMat, false);
-                  addInteractable(sx, 1.5, z - 3, 1.6, 0.8, 13.5, new THREE.MeshPhongMaterial({color: 0xc0392b}), "Read", "《History of Canada》");
-                  addInteractable(sx, 3.5, z - 3, 1.6, 0.8, 13.5, new THREE.MeshPhongMaterial({color: 0x2980b9}), "Read", "《Math》");
-              }
-              addBox(x, 1, z + 10, 16, 0.2, 4, woodMat, false);
-              for(let i=-2; i<=2; i++) {
-                  addFurniture(x + i*3, 0.45, z + 12.5, 1.0, 0.1, 1.0, chairMat, 0.5, "Read", "Sit down and read a book quietly");
-                  addBox(x + i*3, 0.9, z + 12.9, 1.0, 0.8, 0.1, chairMat, false);
-              }
-          }
-          else if (type === 'gym') {
-              addInteractable(x - w/2 + 5, 0.5, z, 10, 1, d - 2, new THREE.MeshPhongMaterial({color: 0xd35400}), "Go on stage", "Standing on the stage, imagine there are thousands of audience members below");
-              addInteractable(x - w/2 + 8, 1.5, z, 0.1, 1, 0.1, metalMat, "Testing the microphone", "Tapped the microphone: Hello? Hello? Sound check...");
-
-
-              const bMat = new THREE.MeshPhongMaterial({color: 0x7f8c8d});
-              addBox(x + w/2 - 2, 0.5, z, 4, 1, d - 8, bMat, false);
-              addFurniture(x + w/2 - 1, 1.5, z, 2, 1, d - 8, bMat, 0.5, "Watch", "Sit in the stands and cheer for your favorite team!");
-            
-              addBox(x + 5, 0.08, z, 20, 0.01, 0.5, whiteMat, false);
-              const hoopMat = new THREE.MeshPhongMaterial({color: 0xbdc3c7});
-              addBox(x + 5, 3, z - d/2 + 2, 0.4, 6, 0.4, hoopMat, false);
-              addInteractable(x + 5, 4.5, z - d/2 + 3, 3, 2, 0.1, whiteMat, "Shoot", "Three-pointer! Swish! Swish through the net!");
-              addBox(x + 5, 3, z + d/2 - 2, 0.4, 6, 0.4, hoopMat, false);
-              addInteractable(x + 5, 4.5, z + d/2 - 3, 3, 2, 0.1, whiteMat, "dunk", "Leaped into the air! Thud! A beautiful dunk!");
-          }
-      }
-
-
-      function buildFullCampus() {
-          const grass = new THREE.Mesh(new THREE.PlaneGeometry(1000,1000), new THREE.MeshPhongMaterial({color: 0x4caf50}));
-          grass.rotation.x = -Math.PI/2; grass.receiveShadow = true; scene.add(grass);
-
-
-          const corrFloorMat = new THREE.MeshPhongMaterial({map: textures.tile});
-          corrFloorMat.map.repeat.set(10, 10);
-        
-          const floorV = new THREE.Mesh(new THREE.PlaneGeometry(12, 100), corrFloorMat);
-          floorV.rotation.x = -Math.PI/2; floorV.position.set(0, 0.02, -58); floorV.receiveShadow = true; scene.add(floorV);
-          addCeilingLight(0, -50, 12, 100, 5.5);
-
-
-          const floorH = new THREE.Mesh(new THREE.PlaneGeometry(180, 16), corrFloorMat);
-          floorH.rotation.x = -Math.PI/2; floorH.position.set(0, 0.02, 0); floorH.receiveShadow = true; scene.add(floorH);
-          addCeilingLight(0, 0, 180, 16, 5.5);
-
-
-          buildHollowRoom(0, -120, 50, 40, "Gym (Gym)", "gym", "S");
-          buildHollowRoom(-19, -85, 26, 30, "West Classroom 1", "class", "E");
-          buildHollowRoom(-19, -55, 26, 30, "West Classroom 2", "class", "E");
-          buildHollowRoom(19, -85, 26, 30, "East Classroom 1", "class", "W");
-          buildHollowRoom(19, -55, 26, 30, "East Classroom 2", "class", "W");
-
-
-          const glassMat = new THREE.MeshPhongMaterial({color: 0x87ceeb, transparent: true, opacity: 0.4});
-          const frameMat = new THREE.MeshPhongMaterial({color: 0x222222});
-        
-          addBox(-6, 2.75, -24, 0.4, 5.5, 32, glassMat, true);
-          addBox(-6, 0.25, -24, 0.6, 0.5, 32, frameMat, false);
-          addBox(-6, 5.25, -24, 0.6, 0.5, 32, frameMat, false);
-          for(let i=-40; i<=-8; i+=4) addBox(-6, 2.75, i, 0.6, 5.5, 0.4, frameMat, false);
-        
-          addBox(6, 2.75, -24, 0.4, 5.5, 32, glassMat, true);
-          addBox(6, 0.25, -24, 0.6, 0.5, 32, frameMat, false);
-          addBox(6, 5.25, -24, 0.6, 0.5, 32, frameMat, false);
-          for(let i=-40; i<=-8; i+=4) addBox(6, 2.75, i, 0.6, 5.5, 0.4, frameMat, false);
-
-
-          buildHollowRoom(-76, -16, 28, 16, "Snack Room (Snack Room)", "snack", "S");
-          buildHollowRoom(-48, -16, 28, 16, "Boys’ Bathroom (Boys Bath)", "boys_bath", "S");
-          buildHollowRoom(-20, -16, 28, 16, "Girls’ Bathroom (Girls Bath)", "girls_bath", "S");
-          buildHollowRoom(-70, 16, 40, 16, "West classroom 3", "class", "N");
-          buildHollowRoom(-35, 16, 30, 16, "Office (Office)", "office", "N");
-
-
-          addBox(20, 2.75, -8, 28, 5.5, 0.8, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          buildHollowRoom(48, -16, 28, 16, "East Classroom 3", "class", "S");
-          buildHollowRoom(76, -16, 28, 16, "East Classroom 4", "class", "S");
-          buildHollowRoom(35, 16, 30, 16, "Admin (Admin)", "office", "N");
-          buildHollowRoom(70, 16, 40, 16, "East Classroom 5", "class", "N");
-
-
-          buildHollowRoom(0, 28, 40, 40, "Library (Library)", "library", "N");
-
-
-          addBox(-90, 2.75, -5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          addBox(-90, 2.75, 5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          addBox(-90, 4.5, 0, 0.8, 1.5, 4, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          createDoor(-90, 0, 'W', 4);
-        
-          addBox(90, 2.75, -5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          addBox(90, 2.75, 5, 0.8, 5.5, 6, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          addBox(90, 4.5, 0, 0.8, 1.5, 4, new THREE.MeshPhongMaterial({map: textures.innerWall}), true);
-          createDoor(90, 0, 'E', 4);
-
-
-          addInteractable(6.5, 1.5, -6.5, 1.2, 3, 1.2, new THREE.MeshPhongMaterial({color: 0xffffff}), "Drink water", "Gulp gulp gulp... a glass of ice water is so refreshing!");
-          addBox(6.5, 3.5, -6.5, 0.8, 1, 0.8, new THREE.MeshPhongMaterial({color: 0x3498db, transparent: true, opacity: 0.8}), false);
-
-
-          for(let i=0; i<15; i++) {
-              addInteractable(20 + i*3, 2, 5.5, 1.5, 4, 0.8, new THREE.MeshPhongMaterial({color: 0x2980b9}), "Open locker", "It's locked");
-              if (i % 5 === 0) {
-                  addInteractable(20 + i*3, 2, -5.8, 0.6, 1, 0.4, new THREE.MeshPhongMaterial({color: 0xe74c3c}), "Check", "Dry powder fire extinguisher, pointer in the green zone, safe and compliant");
-              }
-          }
-        
-          addInteractable(-22, 3, -83, 1.5, 0.8, 0.1, new THREE.MeshPhongMaterial({color: 0x34495e}), "Read", "Grade-");
-          addInteractable(22, 3, -83, 1.5, 0.8, 0.1, new THREE.MeshPhongMaterial({color: 0x34495e}), "Read", "Grade-");
-          addInteractable(0, 3, 5, 3, 1.5, 0.1, new THREE.MeshPhongMaterial({color: 0xf1c40f}), "See the announcement", "The first class is language");
-
-
-          buildGlobalRoof();
-      }
-
-
-      function setupControls() {
-          document.getElementById('start-btn').addEventListener('click', () => {
-              document.body.requestPointerLock();
-          });
-
-
-          document.addEventListener('pointerlockchange', () => {
-              isStarted = document.pointerLockElement === document.body;
-              document.getElementById('start-overlay').style.display = isStarted ? 'none' : 'flex';
-              if (!isStarted) {
-                  moveForward = moveBackward = moveLeft = moveRight = isSprinting = false;
-              }
-          });
-
-
-          document.addEventListener('keydown', (e) => {
-              if (!isStarted) return;
-              switch(e.code) {
-                  case 'KeyW': case 'ArrowUp': moveForward = true; break;
-                  case 'KeyS': case 'ArrowDown': moveBackward = true; break;
-                  case 'KeyA': case 'ArrowLeft': moveLeft = true; break;
-                  case 'KeyD': case 'ArrowRight': moveRight = true; break;
-                  case 'Space': if(canJump && !isUsingFurniture) { velocity.y = 12.0; canJump = false; } break;
-                  case 'ShiftLeft': case 'ShiftRight':
-                      if (isUsingFurniture) {
-                          isUsingFurniture = false;
-                          camera.position.copy(preUsePosition);
-                      } else {
-                          isSprinting = true;
-                      }
-                      break;
-              }
-          });
-          document.addEventListener('keyup', (e) => {
-              switch(e.code) {
-                  case 'KeyW': case 'ArrowUp': moveForward = false; break;
-                  case 'KeyS': case 'ArrowDown': moveBackward = false; break;
-                  case 'KeyA': case 'ArrowLeft': moveLeft = false; break;
-                  case 'KeyD': case 'ArrowRight': moveRight = false; break;
-                  case 'ShiftLeft': case 'ShiftRight': isSprinting = false; break;
-              }
-          });
-
-
-          document.addEventListener('mousedown', (e) => {
-              if (isStarted && currentHover && !isUsingFurniture && e.button === 0) {
-                  const action = currentHover.userData.type;
-                
-                  if (action === 'sit') {
-                      isUsingFurniture = true;
-                      preUsePosition.copy(camera.position);
-                      camera.position.copy(currentHover.userData.usePos);
-                      velocity.set(0,0,0);
-                      showTempMessage(currentHover.userData.msg);
-                  } else {
-                      showTempMessage(currentHover.userData.msg);
-                      currentHover.position.y -= 0.05;
-                      setTimeout(() => { currentHover.position.y += 0.05; }, 100);
-                  }
-              }
-          });
-        
-          document.addEventListener('mousemove', (e) => {
-              if (isStarted) {
-                  camera.rotation.y -= e.movementX * 0.002;
-                  camera.rotation.x -= e.movementY * 0.002;
-                  camera.rotation.x = Math.max(-1.5, Math.min(1.5, camera.rotation.x));
-              }
-          });
-      }
-
-
-      function checkCollision(nx, nz) {
-          for (let c of colliders) {
-              if (nx + PLAYER_RADIUS > c.minX && nx - PLAYER_RADIUS < c.maxX &&
-                  nz + PLAYER_RADIUS > c.minZ && nz - PLAYER_RADIUS < c.maxZ) {
-                  if(camera.position.y > c.minY && camera.position.y - PLAYER_HEIGHT < c.maxY) {
-                      return true;
-                  }
-              }
-          }
-          return false;
-      }
-
-
-      function drawMiniMap() {
-          const canvas = document.getElementById('mini-map-canvas');
-          const ctx = canvas.getContext('2d');
-          ctx.clearRect(0, 0, 220, 220);
-          const scale = 0.7; const ox = 110; const oz = 120;
-
-
-          ctx.fillStyle = 'rgba(150, 150, 150, 0.6)';
-          roomTriggers.forEach(r => {
-              ctx.fillRect(ox + r.minX*scale, oz + r.minZ*scale, (r.maxX-r.minX)*scale, (r.maxZ-r.minZ)*scale);
-              ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-              ctx.strokeRect(ox + r.minX*scale, oz + r.minZ*scale, (r.maxX-r.minX)*scale, (r.maxZ-r.minZ)*scale);
-          });
-        
-          const px = ox + camera.position.x * scale;
-          const pz = oz + camera.position.z * scale;
-          ctx.save();
-          ctx.translate(px, pz);
-          ctx.rotate(-camera.rotation.y);
-          ctx.beginPath();
-          ctx.moveTo(0, -8); ctx.lineTo(5, 5); ctx.lineTo(-5, 5);
-          ctx.fillStyle = '#2ecc71'; ctx.fill();
-          ctx.restore();
-      }
-
-
-      function animate() {
-          requestAnimationFrame(animate);
-          const dt = Math.min(clock.getDelta(), 0.1);
-
-
-          if (isStarted) {
-              let targetFov = isUsingFurniture ? 60 : (isSprinting ? 95 : 75);
-              camera.fov += (targetFov - camera.fov) * 0.1;
-              camera.updateProjectionMatrix();
-
-
-              raycaster.setFromCamera(mouseCenter, camera);
-              const intersects = raycaster.intersectObjects(interactableObjects);
-              const crosshair = document.getElementById('crosshair');
-              const interactTip = document.getElementById('interact-tip');
-
-
-              if (intersects.length > 0 && intersects[0].distance < 4 && !isUsingFurniture) {
-                  if (currentHover !== intersects[0].object) {
-                      if (currentHover) currentHover.material.emissive.setHex(currentHover.userData.baseEmissive);
-                      currentHover = intersects[0].object;
-                      currentHover.material.emissive.setHex(0x555555);
-                  }
-                
-                  crosshair.style.borderColor = '#f1c40f';
-                  crosshair.style.transform = 'translate(-50%, -50%) scale(1.5)';
-                  interactTip.innerText = `[ Left click ] ${currentHover.userData.actionText}`;
-                  interactTip.style.display = 'block';
-              } else {
-                  if (currentHover) {
-                      currentHover.material.emissive.setHex(currentHover.userData.baseEmissive);
-                      currentHover = null;
-                  }
-                  crosshair.style.borderColor = 'white';
-                  crosshair.style.transform = 'translate(-50%, -50%) scale(1)';
-                  interactTip.style.display = 'none';
-              }
-
-
-              if (!isUsingFurniture) {
-                  velocity.y -= 30 * dt;
-                  camera.position.y += velocity.y * dt;
-                  if (camera.position.y < PLAYER_HEIGHT) {
-                      camera.position.y = PLAYER_HEIGHT;
-                      velocity.y = 0; canJump = true;
-                  }
-
-
-                  direction.z = Number(moveForward) - Number(moveBackward);
-                  direction.x = Number(moveRight) - Number(moveLeft);
-                  direction.normalize();
-
-
-                  if (moveForward || moveBackward || moveLeft || moveRight) {
-                      const camDir = new THREE.Vector3(0,0,-1).applyQuaternion(camera.quaternion);
-                      camDir.y = 0; camDir.normalize();
-                      const camRight = new THREE.Vector3().crossVectors(camDir, new THREE.Vector3(0,1,0)).normalize();
-                    
-                      const speed = isSprinting ? MOVE_SPEED_SPRINT : MOVE_SPEED_WALK;
-                      const moveVec = new THREE.Vector3().addScaledVector(camDir, direction.z).addScaledVector(camRight, direction.x);
-                    
-                      if (moveVec.lengthSq() > 0) {
-                          moveVec.normalize().multiplyScalar(speed * dt * 0.1);
-                          if (!checkCollision(camera.position.x + moveVec.x, camera.position.z)) camera.position.x += moveVec.x;
-                          if (!checkCollision(camera.position.x, camera.position.z + moveVec.z)) camera.position.z += moveVec.z;
-                      }
-                  }
-              } else {
-                  interactTip.innerText = "[ Shift ] Stand up / Leave";
-                  interactTip.style.display = 'block';
-              }
-
-
-              animatedDoors.forEach(door => {
-                  const trigDist = door.triggerDist || 4.5;
-                  const dist = Math.hypot(camera.position.x - door.px, camera.position.z - door.pz);
-                  door.targetRot = (dist < trigDist) ? door.openRot : 0;
-                  door.currentRot += (door.targetRot - door.currentRot) * 0.1;
-                  door.group.rotation.y = door.currentRot;
-              });
-
-
-              let currentLoc = "Outside";
-              for (let r of roomTriggers) {
-                  if (camera.position.x > r.minX && camera.position.x < r.maxX && camera.position.z > r.minZ && camera.position.z < r.maxZ) {
-                      currentLoc = r.name; break;
-                  }
-              }
-              if (currentLoc === "Outside" && (Math.abs(camera.position.x) < 6 || Math.abs(camera.position.z) < 6)) currentLoc = "Corridor";
-              document.getElementById('loc-display').innerText = currentLoc;
-
-
-              drawMiniMap();
-          }
-          renderer.render(scene, camera);
-      }
-
-
-      function onResize() {
-          camera.aspect = window.innerWidth / window.innerHeight;
-          camera.updateProjectionMatrix();
-          renderer.setSize(window.innerWidth, window.innerHeight);
-      }
-
-
-      init();
-  </script>
+    initBoss(); 
+    updateHearts();
+    requestAnimationFrame(gameLoop);
+
+</script>
 </body>
 </html>
