@@ -320,6 +320,7 @@
         // Bomb update
         for (let i = bombs.length - 1; i >= 0; i--) {
             let b = bombs[i];
+            if (!b) break; // Fix for undefined array elements after level reset
             if (b.state === 'ticking') {
                 b.timer--;
                 if (b.timer <= 0) {
@@ -327,15 +328,15 @@
                     if (currentLevel === 6 && boss.state === 'visible') {
                         if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) {
                             boss.hp--; boss.invuln = 20; bgFlash();
-                            if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Entering Level 7!"); currentLevel = 7; initBoss(); updateHearts(); }
+                            if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Entering Level 7!"); currentLevel = 7; initBoss(); updateHearts(); break; }
                         }
                     }
                     if (currentLevel === 7) {
-                        if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) { bossDamage7(); }
+                        if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) { bossDamage7(); if(boss.hp <= 0) break; }
                     }
                     if (Math.hypot(player.x - b.x, player.y - b.y) < player.radius + 24 && player.invuln <= 0 && player.state !== 'hurt' && player.z < 10) {
                         player.hp--; updateHearts(); triggerPlayerKnockback(b); player.invuln = 60;
-                        if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+                        if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); break; }
                     }
                 }
             } else if (b.state === 'exploding') {
@@ -345,13 +346,15 @@
 
         // Falling rock update
         for (let i = rocks.length - 1; i >= 0; i--) {
-            let r = rocks[i]; r.y += r.vy;
+            let r = rocks[i];
+            if (!r) break; // Fix for undefined array elements after level reset
+            r.y += r.vy;
             if (r.y >= r.targetY) {
                 rocks.splice(i, 1);
             } else if (Math.hypot(player.x - r.x, player.y - r.y) < player.radius + 8 && player.z === 0) {
                 if (player.invuln <= 0 && player.state !== 'hurt') {
                     player.hp--; updateHearts(); triggerPlayerKnockback(r); player.invuln = 60;
-                    if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+                    if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); break; }
                 }
                 rocks.splice(i, 1); 
             }
@@ -721,13 +724,15 @@
 
     function updateProjectiles() {
         for (let i = projectiles.length - 1; i >= 0; i--) {
-            let p = projectiles[i]; p.x += p.vx; p.y += p.vy;
+            let p = projectiles[i];
+            if (!p) break; // Fix for undefined array elements after level reset
+            p.x += p.vx; p.y += p.vy;
             if (p.life !== undefined) { p.life--; if (p.life <= 0) { projectiles.splice(i, 1); continue; } }
             if (p.y > 200 || p.x < -20 || p.x > 280 || p.y < -20) { projectiles.splice(i, 1); continue; }
             
             if (currentLevel === 7 && boss.invuln <= 0) {
                 if ((p.type === 'powder' || p.type === 'rod_fire') && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 15) {
-                    bossDamage7(); projectiles.splice(i, 1); continue;
+                    bossDamage7(); projectiles.splice(i, 1); if (boss.hp <= 0) break; continue;
                 }
             }
 
@@ -740,6 +745,7 @@
                         player.maxHp++; player.hp = player.maxHp;
                         alert("Level 8 cleared! Prepare for the ultimate hidden stage: Shadow Nightmares!");
                         currentLevel = 9; initBoss(); updateHearts();
+                        break;
                     }
                     continue;
                 }
@@ -756,6 +762,7 @@
                         player.maxHp++; player.hp = player.maxHp;
                         alert("Unbelievable! You defeated the Creator of the world. Game completely cleared!");
                         currentLevel = 1; initBoss(); updateHearts();
+                        break;
                     }
                     continue;
                 }
