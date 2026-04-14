@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>织梦岛 DX：经典 Boss 连战</title>
+    <title>Link's Awakening DX: Classic Boss Gauntlet</title>
     <style>
         body {
             margin: 0;
@@ -79,8 +79,8 @@
 </div>
 
 <div id="instructions">
-    <span class="highlight">WASD</span>: 移动 | <span class="highlight">J</span>: 剑 | <span class="highlight">K</span>: 罐 | <span class="highlight">L</span>: 冲 | <span class="highlight">H</span>: 钩 | <span class="highlight">U</span>: 跳 | <span class="highlight">B</span>: 炸弹 | <span class="highlight">P</span>: 粉末 | <span class="highlight">R</span>: 魔棒 | <span class="highlight">C</span>: 弓箭<br>
-    【1-0】数字键选关 | 第10关：世界的缔造者“作者”！小心他的弹幕与时空冻结！
+    <span class="highlight">WASD</span>: Move | <span class="highlight">J</span>: Sword | <span class="highlight">K</span>: Pot | <span class="highlight">L</span>: Dash | <span class="highlight">H</span>: Hook | <span class="highlight">U</span>: Jump | <span class="highlight">B</span>: Bomb | <span class="highlight">P</span>: Powder | <span class="highlight">R</span>: Rod | <span class="highlight">C</span>: Bow<br>
+    Level 10: The Creator "Author"! Beware his bullet hell and time freeze!
 </div>
 
 <script>
@@ -104,18 +104,6 @@
         if (e.code === 'KeyP') playerDropPowder();
         if (e.code === 'KeyR') playerShootRod();
         if (e.code === 'KeyC') playerShootArrow();
-        
-        // 快捷作弊键：直接切换关卡 (1-0)
-        if (e.code === 'Digit1') { currentLevel = 1; initBoss(); }
-        if (e.code === 'Digit2') { currentLevel = 2; initBoss(); }
-        if (e.code === 'Digit3') { currentLevel = 3; initBoss(); }
-        if (e.code === 'Digit4') { currentLevel = 4; initBoss(); }
-        if (e.code === 'Digit5') { currentLevel = 5; initBoss(); }
-        if (e.code === 'Digit6') { currentLevel = 6; initBoss(); }
-        if (e.code === 'Digit7') { currentLevel = 7; initBoss(); }
-        if (e.code === 'Digit8') { currentLevel = 8; initBoss(); }
-        if (e.code === 'Digit9') { currentLevel = 9; initBoss(); }
-        if (e.code === 'Digit0') { currentLevel = 10; initBoss(); }
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
@@ -142,16 +130,16 @@
     let boss = { hp: 4, maxHp: 4, invuln: 0, state: 'move', timer: 0 };
 
     const BOSS_DATA = [
-        { name: "蠕虫", hp: 4 },
-        { name: "壶魔王", hp: 5 },
-        { name: "巨眼史莱姆", hp: 12 },
-        { name: "灯笼鱼", hp: 16 },
-        { name: "史莱姆鳗鱼", hp: 5 },
-        { name: "脸孔魔王", hp: 5 },
-        { name: "邪恶大鹫", hp: 14 },
-        { name: "火焰热头", hp: 16 },
-        { name: "最终梦魇", hp: 0 }, // 形态血量不同
-        { name: "作者 (The Author)", hp: 24 }
+        { name: "Moldorm", hp: 4 },
+        { name: "Genie", hp: 5 },
+        { name: "Slime Eye", hp: 12 },
+        { name: "Angler Fish", hp: 16 },
+        { name: "Slime Eel", hp: 5 },
+        { name: "Facade", hp: 5 },
+        { name: "Evil Eagle", hp: 14 },
+        { name: "Hot Head", hp: 16 },
+        { name: "Shadow Nightmares", hp: 0 }, // Different phase HPs
+        { name: "The Author", hp: 24 }
     ];
 
     function initBoss() {
@@ -198,16 +186,16 @@
             boss.state = 'author_float'; boss.timer = 0; boss.freezeCooldown = 500;
             boss.invisCooldown = 1000; boss.invisTimer = 0;
             boss.x = 128; boss.y = 96; boss.radius = 16;
-            boss.worms = []; // 初始化蠕虫大军存储数组
+            boss.worms = []; // Initialize worm army storage array
         }
         updateBossUI();
     }
 
-    // 第九关专属：Shadow Boss 6 个形态初始化
+    // Level 9 exclusive: Shadow Boss 6 phases initialization
     function setupShadowPhase() {
         boss.invuln = 0; boss.timer = 60; boss.z = 0; boss.vz = 0;
-        projectiles = projectiles.filter(p => p.type === 'powder' || p.type === 'rod_fire'); // 清理之前的弹幕
-        let names = ["Giant Gel", "魔法师 (Agahnim)", "巨型蜈蚣 (Moldorm)", "加侬之影 (Ganon)", "兰莫拉 (Lanmola)", "巨眼 (DethI)"];
+        projectiles = projectiles.filter(p => p.type === 'powder' || p.type === 'rod_fire'); // Clear previous projectiles
+        let names = ["Giant Gel", "Agahnim", "Moldorm Shadow", "Ganon's Shadow", "Lanmola", "DethI"];
         bossNameEl.innerText = `BOSS: 9/10 ${names[boss.shadowPhase - 1]}`;
 
         if(boss.shadowPhase === 1) { 
@@ -228,7 +216,7 @@
         updateBossUI();
     }
 
-    // 新道具动作
+    // New item actions
     function playerDropPowder() {
         if (player.freezeTimer > 0) return;
         if (player.state !== 'hurt' && player.powderCooldown <= 0 && !projectiles.some(p => p.type === 'powder')) {
@@ -243,7 +231,7 @@
         if (player.state !== 'hurt' && !projectiles.some(p => p.type === 'rod_fire')) {
             let vx = player.dir==='left'?-6:player.dir==='right'?6:0;
             let vy = player.dir==='up'?-6:player.dir==='down'?6:0;
-            if(vx===0 && vy===0) vy = 6; // 默认向下
+            if(vx===0 && vy===0) vy = 6; // Default downward
             projectiles.push({x: player.x, y: player.y, vx: vx, vy: vy, life: 60, type: 'rod_fire'});
         }
     }
@@ -259,7 +247,7 @@
         }
     }
 
-    // 原有动作
+    // Original actions
     function playerInteract() {
         if (player.freezeTimer > 0) return;
         if (currentLevel !== 2) return;
@@ -312,24 +300,24 @@
             if (player.z <= 0) { player.z = 0; player.vz = 0; }
         }
 
-        // 第七关强风
+        // Level 7 strong wind
         if (currentLevel === 7) {
             player.x += windX;
             if ((player.x < 32 || player.x > 224 || player.y < 32 || player.y > 160) && player.z === 0) {
                 player.hp--; updateHearts(); player.x = 128; player.y = 100; player.invuln = 60;
-                if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
+                if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
             }
         }
         
-        // 第八关岩浆
+        // Level 8 lava
         if (currentLevel === 8 && player.z === 0) {
             if (player.x > 48 && player.x < 208 && player.y > 48 && player.y < 144) {
                 player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60;
-                if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
+                if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
             }
         }
 
-        // 炸弹更新
+        // Bomb update
         for (let i = bombs.length - 1; i >= 0; i--) {
             let b = bombs[i];
             if (b.state === 'ticking') {
@@ -339,7 +327,7 @@
                     if (currentLevel === 6 && boss.state === 'visible') {
                         if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) {
                             boss.hp--; boss.invuln = 20; bgFlash();
-                            if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("进入第七关！"); currentLevel = 7; initBoss(); updateHearts(); }
+                            if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Entering Level 7!"); currentLevel = 7; initBoss(); updateHearts(); }
                         }
                     }
                     if (currentLevel === 7) {
@@ -347,7 +335,7 @@
                     }
                     if (Math.hypot(player.x - b.x, player.y - b.y) < player.radius + 24 && player.invuln <= 0 && player.state !== 'hurt' && player.z < 10) {
                         player.hp--; updateHearts(); triggerPlayerKnockback(b); player.invuln = 60;
-                        if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+                        if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
                     }
                 }
             } else if (b.state === 'exploding') {
@@ -355,7 +343,7 @@
             }
         }
 
-        // 落石更新
+        // Falling rock update
         for (let i = rocks.length - 1; i >= 0; i--) {
             let r = rocks[i]; r.y += r.vy;
             if (r.y >= r.targetY) {
@@ -363,13 +351,13 @@
             } else if (Math.hypot(player.x - r.x, player.y - r.y) < player.radius + 8 && player.z === 0) {
                 if (player.invuln <= 0 && player.state !== 'hurt') {
                     player.hp--; updateHearts(); triggerPlayerKnockback(r); player.invuln = 60;
-                    if(player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+                    if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
                 }
                 rocks.splice(i, 1); 
             }
         }
 
-        // 玩家状态机
+        // Player state machine
         if (player.freezeTimer > 0) {
             player.freezeTimer--;
             player.state = 'idle';
@@ -408,7 +396,7 @@
             else { player.state = 'idle'; }
         }
 
-        // 边界限制
+        // Boundary limits
         if (currentLevel === 4) {
             player.x = Math.max(16, Math.min(256 - 16, player.x)); player.y = Math.max(30, Math.min(192 - 16, player.y));
         } else if (currentLevel !== 7 && currentLevel !== 8) {
@@ -435,7 +423,7 @@
         boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
         if (boss.hp <= 0) {
             player.maxHp++; player.hp = player.maxHp;
-            alert("第七关：邪恶大鹫被击败！获得心之容器！\n准备迎接终极考验：火焰热头！");
+            alert("Level 7: Evil Eagle defeated! Heart Container acquired!\nPrepare for the ultimate test: Hot Head!");
             currentLevel = 8; initBoss(); updateHearts();
         }
     }
@@ -447,10 +435,10 @@
             player.maxHp++; player.hp = player.maxHp; updateHearts();
             boss.shadowPhase++;
             if (boss.shadowPhase > 6) {
-                alert("恭喜！你击败了终极噩梦 (Shadow Nightmares)！\n等等...那是什么声音？");
+                alert("Congratulations! You defeated the Shadow Nightmares!\nWait... what is that sound?");
                 currentLevel = 10; initBoss(); updateHearts();
             } else {
-                boss.state = 'phase_transition'; // 化身黑球移动到中心
+                boss.state = 'phase_transition'; // Transform into black ball and move to center
                 boss.targetX = 128; boss.targetY = 96;
                 boss.invuln = 9999;
             }
@@ -474,7 +462,7 @@
             return;
         }
 
-        if (boss.shadowPhase === 1) { // Giant Gel - 跳跃移动
+        if (boss.shadowPhase === 1) { // Giant Gel - Jumping movement
             if (boss.z > 0 || boss.vz !== 0) {
                 boss.z += boss.vz; boss.vz -= 0.2;
                 boss.x += boss.vx; boss.y += boss.vy;
@@ -482,11 +470,11 @@
             } else if (boss.timer <= 0) {
                 let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                 boss.vx = Math.cos(ang) * 1.5; boss.vy = Math.sin(ang) * 1.5;
-                boss.vz = 3.5; // 缓慢跳跃
+                boss.vz = 3.5; // Slow jump
             }
             if (boss.x < 32 || boss.x > 224) boss.vx *= -1;
             if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
-        } else if (boss.shadowPhase === 2) { // Agahnim - 不再瞬移，化身黑球
+        } else if (boss.shadowPhase === 2) { // Agahnim - No more teleports, turns into black ball
             if (boss.state === 'agahnim_prep') {
                 if (boss.timer <= 0) {
                     let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
@@ -532,7 +520,7 @@
             } else {
                 boss.x += Math.sin(Date.now()/500)*1.5; boss.y += Math.cos(Date.now()/400)*1;
                 
-                // 不在冷却时间时，每20帧不断生成火蝙蝠 (去除了 > 0 限制)
+                // When not in cooldown, spawn firebats every 20 frames
                 if (boss.timer % 20 === 0) {
                     let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                     projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*2.5, vy: Math.sin(ang)*2.5, type: 'firebat', life: 200});
@@ -549,7 +537,7 @@
                     } else {
                         let dx = boss.x - boss.trident.x, dy = boss.y - boss.trident.y;
                         let d = Math.hypot(dx, dy);
-                        if (d < 10) { boss.trident = null; boss.state = 'ganon_idle'; boss.timer = 240; } // 4秒绝对冷却 (60帧*4)
+                        if (d < 10) { boss.trident = null; boss.state = 'ganon_idle'; boss.timer = 240; } // 4 seconds absolute cooldown (60 FPS * 4)
                         else { boss.trident.x += (dx/d)*5; boss.trident.y += (dy/d)*5; }
                     }
                 }
@@ -568,7 +556,7 @@
         }
     }
 
-    // 第十关 作者
+    // Level 10 Author
     function updateBoss10() {
         if (boss.hp <= 0) return;
         boss.timer++;
@@ -586,12 +574,12 @@
         boss.x += Math.sin(boss.timer * 0.05) * 1.5;
         boss.y += Math.cos(boss.timer * 0.03) * 1.0;
         
-        // 边界限制
+        // Boundary limits
         boss.x = Math.max(30, Math.min(226, boss.x));
         boss.y = Math.max(40, Math.min(180, boss.y));
 
         if (boss.hp > 5) {
-            if (boss.timer % 50 === 0) { // 火球减缓为 50 帧一发
+            if (boss.timer % 50 === 0) { // Fireballs slowed to 1 per 50 frames
                 let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                 projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*4.5, vy: Math.sin(ang)*4.5, type: 'author_fire', life: 100});
             }
@@ -603,14 +591,14 @@
         }
 
         if (boss.freezeCooldown <= 0) {
-            player.freezeTimer = 50; // 冻结玩家 50帧
-            boss.freezeCooldown = 500; // 500帧后再次冻结
-            // 冰冻报错特效
+            player.freezeTimer = 50; // Freeze player for 50 frames
+            boss.freezeCooldown = 500; // Freeze again after 500 frames
+            // Freeze glitch effect
             document.getElementById('gameCanvas').style.backgroundColor = "#00ffff";
             setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100);
         }
 
-        // 0.05% 概率生成小蠕虫（上限 3 只）
+        // 0.05% chance to spawn small worm (max 3)
         if (Math.random() < 0.0005 && boss.worms && boss.worms.length < 3) {
             let worm = {
                 x: 40 + Math.random() * 176, y: 40 + Math.random() * 112,
@@ -621,7 +609,7 @@
             boss.worms.push(worm);
         }
         
-        // 更新蠕虫
+        // Update worms
         if (boss.worms) {
             boss.worms.forEach(w => {
                 if (Math.random() < 0.05) w.turnDir *= -1;
@@ -644,7 +632,7 @@
         updateBossUI();
     }
 
-    // 复用之前前8关逻辑 
+    // Reuse previous levels 1-8 logic 
     function updateBoss1() {
         if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--;
         if (Math.random() < 0.02) boss.turnDir *= -1; boss.angle += boss.turnSpeed * boss.turnDir;
@@ -709,22 +697,22 @@
             if (boss.timer <= 0) { 
                 boss.x = 64 + Math.random() * 128; 
                 boss.y = 64 + Math.random() * 64; 
-                boss.initialY = boss.y; // 记住起跳点，保证严格落回岩浆
+                boss.initialY = boss.y; // Remember jump point, ensure strict return to lava
                 boss.state = 'jump'; 
                 boss.timer = 60; 
-                boss.vy = -4; // 跳跃初速
+                boss.vy = -4; // Jump initial velocity
             }
         } else if (boss.state === 'jump') { 
             boss.y += boss.vy; 
-            boss.vy += 0.1; // 重力减小，延长滞空时间
-            if (boss.vy >= -0.05 && boss.vy <= 0.05) { // 在跳跃最高点吐火球
+            boss.vy += 0.1; // Reduce gravity, extend air time
+            if (boss.vy >= -0.05 && boss.vy <= 0.05) { // Spit fireballs at the apex of jump
                 for(let i=0; i<4; i++) { 
                     let ang = i * (Math.PI/2) + (Date.now()/100); 
                     projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*2, vy: Math.sin(ang)*2, type: 'fire'}); 
                 } 
             } 
             if (boss.y > boss.initialY && boss.vy > 0) { 
-                boss.y = boss.initialY; // 严格落回岩浆初始位置
+                boss.y = boss.initialY; // Strictly return to initial lava position
                 boss.state = 'lava_hide'; 
                 boss.timer = 90; 
             } 
@@ -743,21 +731,21 @@
                 }
             }
 
-            // 第八关专属物理碰撞处理 (只能用魔法棒伤害)
+            // Level 8 specific collision (Magic Rod damage only)
             if (currentLevel === 8 && boss.invuln <= 0 && boss.state === 'jump') {
                 if (p.type === 'rod_fire' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 10) {
                     boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
                     projectiles.splice(i, 1);
                     if (boss.hp <= 0) {
                         player.maxHp++; player.hp = player.maxHp;
-                        alert("通过第八关！准备迎接终极隐藏关卡：梦魇群！");
+                        alert("Level 8 cleared! Prepare for the ultimate hidden stage: Shadow Nightmares!");
                         currentLevel = 9; initBoss(); updateHearts();
                     }
                     continue;
                 }
             }
 
-            // 第十关 作者 专属物理碰撞 (反弹火球)
+            // Level 10 Author specific collision (Reflect fireball)
             if (currentLevel === 10 && (!boss.invisTimer || boss.invisTimer <= 0)) {
                 if (p.type === 'author_fire_reflected' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) {
                     boss.hp--; player.hasHit = true; bgFlash(); updateBossUI();
@@ -766,14 +754,14 @@
                     projectiles.splice(i, 1);
                     if (boss.hp <= 0) {
                         player.maxHp++; player.hp = player.maxHp;
-                        alert("难以置信！你竟然击溃了世界的创造者，游戏彻底通关！");
+                        alert("Unbelievable! You defeated the Creator of the world. Game completely cleared!");
                         currentLevel = 1; initBoss(); updateHearts();
                     }
                     continue;
                 }
             }
 
-            // 第九关专属物理碰撞处理 (子弹打击Boss)
+            // Level 9 specific collision (Projectiles hit Boss)
             if (currentLevel === 9 && boss.state !== 'phase_transition') {
                 if (boss.shadowPhase === 1 && p.type === 'powder' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 10) { bossDamage9(); projectiles.splice(i, 1); continue; }
                 if (boss.shadowPhase === 2 && p.type === 'agahnim_fire_reflected' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) { bossDamage9(); projectiles.splice(i, 1); continue; }
@@ -790,9 +778,9 @@
         const hitRadius = 20;
 
         if (currentLevel === 10) {
-            // 第十关 作者 受击逻辑
-            if (boss.invisTimer <= 0) { // 隐身时本体不可受击
-                // 打回火球 (HP > 5 时主要输出手段)
+            // Level 10 Author hit logic
+            if (boss.invisTimer <= 0) { // Invincible while invisible
+                // Reflect fireball (Main damage when HP > 5)
                 projectiles.forEach(p => {
                     if (p.type === 'author_fire' && Math.hypot(sx - p.x, sy - p.y) < 25) {
                         p.type = 'author_fire_reflected';
@@ -802,23 +790,23 @@
                     }
                 });
 
-                // HP <= 5 时，作者暴走射箭，此时本体重新受到剑击伤害
+                // When HP <= 5, Author goes berserk shooting arrows, vulnerable to sword again
                 if (boss.hp <= 5 && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) {
                     boss.hp--; player.hasHit = true; bgFlash(); updateBossUI();
-                    // 瞬移
+                    // Teleport
                     boss.x = 40 + Math.random() * 176;
                     boss.y = 40 + Math.random() * 112;
                     if (boss.hp <= 0) {
                         player.maxHp++; player.hp = player.maxHp;
-                        alert("难以置信！你竟然击溃了世界的创造者，游戏彻底通关！");
+                        alert("Unbelievable! You defeated the Creator of the world. Game completely cleared!");
                         currentLevel = 1; initBoss(); updateHearts();
-                        return; // 防止后续逻辑报错
+                        return; // Prevent subsequent logic errors
                     }
                 }
             }
 
-            // 砍蠕虫 (任何时候都可砍)
-            if (boss.worms) { // 增加安全校验
+            // Slash worms (can be hit anytime)
+            if (boss.worms) { // Add safety check
                 for (let wIndex = boss.worms.length - 1; wIndex >= 0; wIndex--) {
                     let w = boss.worms[wIndex];
                     const tail = w.segments[w.numSegments - 1];
@@ -839,7 +827,7 @@
 
         if (currentLevel === 9) {
             if (boss.shadowPhase === 2) {
-                // 打回火球
+                // Reflect fireball
                 projectiles.forEach(p => {
                     if (p.type === 'agahnim_fire' && Math.hypot(sx - p.x, sy - p.y) < 25) {
                         p.type = 'agahnim_fire_reflected';
@@ -856,19 +844,19 @@
             return;
         }
 
-        // 旧 1-8 关逻辑
+        // Old Level 1-8 logic
         if (currentLevel === 1) {
             const tail = boss.segments[boss.numSegments - 1];
-            if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + boss.segmentRadius) { boss.hp--; boss.invuln = 0; boss.speed = boss.baseSpeed * 2.5; player.hasHit = true; bgFlash(); setTimeout(() => { boss.speed = boss.baseSpeed; }, 2000); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第一关：长尾大空洞通过！\n即将进入第二关：壶洞窟"); currentLevel = 2; initBoss(); updateHearts(); return; } }
+            if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + boss.segmentRadius) { boss.hp--; boss.invuln = 0; boss.speed = boss.baseSpeed * 2.5; player.hasHit = true; bgFlash(); setTimeout(() => { boss.speed = boss.baseSpeed; }, 2000); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 1 cleared!\nEntering Level 2..."); currentLevel = 2; initBoss(); updateHearts(); return; } }
             for (let i = 0; i < boss.numSegments - 1; i++) { if (Math.hypot(sx - boss.segments[i].x, sy - boss.segments[i].y) < hitRadius + boss.segmentRadius) { player.hasHit = true; triggerPlayerKnockback(boss.segments[i]); break; } }
         } else if (currentLevel === 2) {
-            if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; if (boss.state === 'jar_move' || boss.state === 'jar_pop') { boss.state = 'jar_stunned'; boss.timer = 180; } else if (boss.state === 'genie_fly') { boss.hp--; boss.invuln = 0; boss.x = 40 + Math.random() * 176; boss.y = 48 + Math.random() * 104; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第二关：壶洞窟通过！\n即将进入第三关：巨眼史莱姆"); currentLevel = 3; initBoss(); updateHearts(); return; } } else if (boss.state === 'jar_stunned') { triggerPlayerKnockback(boss); } }
+            if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; if (boss.state === 'jar_move' || boss.state === 'jar_pop') { boss.state = 'jar_stunned'; boss.timer = 180; } else if (boss.state === 'genie_fly') { boss.hp--; boss.invuln = 0; boss.x = 40 + Math.random() * 176; boss.y = 48 + Math.random() * 104; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 2 cleared!\nEntering Level 3..."); currentLevel = 3; initBoss(); updateHearts(); return; } } else if (boss.state === 'jar_stunned') { triggerPlayerKnockback(boss); } }
         } else if (currentLevel === 3) {
-            if (boss.state === 'combined') { if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(sx - eye.x, sy - eye.y) < hitRadius + eye.radius) { eye.hp--; boss.hp--; updateHearts(); eye.invuln = 0; player.hasHit = true; bgFlash(); let angle = Math.atan2(eye.y - player.y, eye.x - player.x); eye.x += Math.cos(angle) * 15; eye.y += Math.sin(angle) * 15; if (boss.eyes[0].hp <= 0 && boss.eyes[1].hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第三关通过！进入第四关：灯笼鱼"); currentLevel = 4; initBoss(); updateHearts(); return; } } }); }
+            if (boss.state === 'combined') { if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(sx - eye.x, sy - eye.y) < hitRadius + eye.radius) { eye.hp--; boss.hp--; updateHearts(); eye.invuln = 0; player.hasHit = true; bgFlash(); let angle = Math.atan2(eye.y - player.y, eye.x - player.x); eye.x += Math.cos(angle) * 15; eye.y += Math.sin(angle) * 15; if (boss.eyes[0].hp <= 0 && boss.eyes[1].hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 3 cleared! Entering Level 4..."); currentLevel = 4; initBoss(); updateHearts(); return; } } }); }
         } else if (currentLevel === 4) {
-            if (Math.hypot(sx - boss.lure.x, sy - boss.lure.y) < hitRadius + boss.lure.radius) { boss.hp--; boss.invuln = 0; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第四关通过！进入第五关：史莱姆鳗鱼"); currentLevel = 5; initBoss(); updateHearts(); return; } } else { for (let i = boss.fairies.length - 1; i >= 0; i--) { if (Math.hypot(sx - boss.fairies[i].x, sy - boss.fairies[i].y) < hitRadius + 6) { boss.fairies.splice(i, 1); player.hasHit = true; break; } } if (!player.hasHit && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } }
+            if (Math.hypot(sx - boss.lure.x, sy - boss.lure.y) < hitRadius + boss.lure.radius) { boss.hp--; boss.invuln = 0; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 4 cleared! Entering Level 5..."); currentLevel = 5; initBoss(); updateHearts(); return; } } else { for (let i = boss.fairies.length - 1; i >= 0; i--) { if (Math.hypot(sx - boss.fairies[i].x, sy - boss.fairies[i].y) < hitRadius + 6) { boss.fairies.splice(i, 1); player.hasHit = true; break; } } if (!player.hasHit && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } }
         } else if (currentLevel === 5) {
-            if ((boss.state === 'dragged_out' || boss.state === 'exposed') && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { boss.hp--; boss.invuln = 20; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("第五关通过！进入第六关：脸孔魔王"); currentLevel = 6; initBoss(); updateHearts(); return; } }
+            if ((boss.state === 'dragged_out' || boss.state === 'exposed') && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { boss.hp--; boss.invuln = 20; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 5 cleared! Entering Level 6..."); currentLevel = 6; initBoss(); updateHearts(); return; } }
         } else if (currentLevel === 7) {
             if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { bossDamage7(); player.hasHit = true; }
         }
@@ -881,10 +869,10 @@
         if (currentLevel === 10) {
             if ((!boss.invisTimer || boss.invisTimer <= 0) && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { 
                 hit = true; damageSource = boss; 
-                player.hp -= 1; // 额外扣1心（最后总计扣 2 颗心）
+                player.hp -= 1; // Deduct 1 extra heart (total 2 hearts)
             }
-            // 撞到小蠕虫
-            if (boss.worms) { // 安全校验
+            // Hit small worm
+            if (boss.worms) { // Safety check
                 boss.worms.forEach(w => {
                     if (player.z < 8) {
                         for (let i = 0; i < w.numSegments; i++) {
@@ -897,7 +885,7 @@
             }
         } else if (currentLevel === 9) {
             if (boss.state === 'shadow_warp' || boss.state === 'phase_transition') {
-                // 黑球状态不造成伤害，也无敌
+                // Black hole state deals no damage, also invincible
             } else if (boss.shadowPhase === 1 || boss.shadowPhase === 2 || boss.shadowPhase === 5) {
                 if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && Math.abs(player.z - (boss.z||0)) < 15) { hit = true; damageSource = boss; }
             } else if (boss.shadowPhase === 3) {
@@ -915,17 +903,17 @@
                 if (Math.hypot(player.x - arm1x, player.y - arm1y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = {x:arm1x, y:arm1y}; }
                 if (Math.hypot(player.x - arm2x, player.y - arm2y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = {x:arm2x, y:arm2y}; }
                 
-                // 第六形态的眼睛被钩爪射中
+                // 6th phase eye hit by hookshot
                 if (boss.eyeOpen && hookshot.active && !hookshot.returning && Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius) { bossDamage9(); hookshot.returning = true; }
             }
         } else {
-            // 旧 1-8 关逻辑
+            // Old Level 1-8 logic
             if (currentLevel === 1) { if (player.z < 8) { for (let i = 0; i < boss.numSegments; i++) { const seg = boss.segments[i]; if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + boss.segmentRadius) { hit = true; damageSource = seg; break; } } } } 
             else if (currentLevel === 2) { if (boss.state !== 'carried' && boss.state !== 'thrown') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && boss.state !== 'jar_stunned') { hit = true; damageSource = boss; } } } 
             else if (currentLevel === 3) { if (boss.state === 'combined') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius * 1.2) { if (player.state === 'dash') { boss.ramHp--; boss.hp--; updateHearts(); triggerPlayerKnockback(boss); document.getElementById('gameCanvas').style.backgroundColor = "#ffffcc"; setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100); if (boss.ramHp <= 0) { boss.state = 'split'; boss.eyes = [ { x: boss.x - 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: -1.5, vy: -1.0, invuln: 0 }, { x: boss.x + 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: 1.5, vy: 1.0, invuln: 0 } ]; } } } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(player.x - eye.x, player.y - eye.y) < player.radius + eye.radius) { hit = true; damageSource = eye; } }); } } 
             else if (currentLevel === 4) { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius - 4) { hit = true; damageSource = boss; } for (let i = 0; i < boss.fairies.length; i++) { if (Math.hypot(player.x - boss.fairies[i].x, player.y - boss.fairies[i].y) < player.radius + 6) { hit = true; damageSource = boss.fairies[i]; break; } } } 
             else if (currentLevel === 5) { for (let i = 1; i <= 4; i++) { let tx = 128 + Math.cos(boss.tailAngle) * (i * 15); let ty = 96 + Math.sin(boss.tailAngle) * (i * 15); if (Math.hypot(player.x - tx, player.y - ty) < player.radius + 8) { hit = true; damageSource = {x: tx, y: ty}; break; } } } 
-            else if (currentLevel === 6) { for (let i = boss.tiles.length - 1; i >= 0; i--) { let t = boss.tiles[i]; if ((t.state === 'flying' || t.state === 'lifting') && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = t; boss.tiles.splice(i, 1); break; } } if (!hit && player.z === 0) { for (let h of boss.holes) { if ((h.state === 'open' || h.state === 'shrinking') && Math.hypot(player.x - h.x, player.y - h.y) < Math.max(0, h.radius - 4)) { player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60; if (player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); } return; } } } } 
+            else if (currentLevel === 6) { for (let i = boss.tiles.length - 1; i >= 0; i--) { let t = boss.tiles[i]; if ((t.state === 'flying' || t.state === 'lifting') && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = t; boss.tiles.splice(i, 1); break; } } if (!hit && player.z === 0) { for (let h of boss.holes) { if ((h.state === 'open' || h.state === 'shrinking') && Math.hypot(player.x - h.x, player.y - h.y) < Math.max(0, h.radius - 4)) { player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60; if (player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); } return; } } } } 
             else if (currentLevel === 7) { 
                 if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; } 
                 if (hookshot.active && !hookshot.returning && Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius) { bossDamage7(); hookshot.returning = true; }
@@ -933,17 +921,17 @@
             else if (currentLevel === 8) { if (boss.state === 'jump' && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; } }
         }
 
-        // 敌方弹幕伤害判定
+        // Enemy projectile damage check
         projectiles.forEach(p => {
             if ((p.type === 'agahnim_fire' || p.type === 'firebat' || p.type === 'feather' || p.type === 'fire' || p.type === 'author_fire' || p.type === 'author_arrow' || !p.type) && Math.hypot(player.x - p.x, player.y - p.y) < 8 && player.z < 8) {
-                hit = true; damageSource = p; p.life = 0; // 标记删除命中的火球/羽毛，触发消失
-                if (p.type === 'author_fire' || p.type === 'author_arrow') player.hp -= 1; // 额外扣1心（最后总计扣 2 颗心）
+                hit = true; damageSource = p; p.life = 0; // Mark hit fireball/feather for deletion
+                if (p.type === 'author_fire' || p.type === 'author_arrow') player.hp -= 1; // Deduct 1 extra heart (total 2 hearts)
             }
         });
 
         if (hit && damageSource) {
             player.hp--; updateHearts(); triggerPlayerKnockback(damageSource); player.invuln = 60; 
-            if (player.hp <= 0) { alert("游戏结束..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+            if (player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
         }
     }
 
@@ -958,7 +946,7 @@
     function updateBossUI() { bossHpFillEl.style.width = (Math.max(0, boss.hp) / boss.maxHp * 100) + "%"; }
 
     // ==========================================
-    // 渲染系统 (全面整数化 | 0 优化性能)
+    // Rendering system (Full integer | 0 performance optimization)
     // ==========================================
     function draw() {
         if (currentLevel === 4) {
@@ -968,21 +956,21 @@
         } else if (currentLevel === 8) {
             ctx.fillStyle = "#d35400"; ctx.fillRect(0,0,256,192); ctx.fillStyle = "#e67e22"; ctx.fillRect(10, 10, 236, 172); ctx.fillStyle = "#7f8c8d"; ctx.fillRect(0, 0, 256, 48); ctx.fillRect(0, 144, 256, 48); ctx.fillRect(0, 0, 48, 192); ctx.fillRect(208, 0, 48, 192);
         } else if (currentLevel === 9) {
-            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height); // 梦魇暗黑背景
+            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height); // Nightmare dark background
             ctx.strokeStyle = "#333"; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); } for(let i=0; i<canvas.height; i+=16) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
         } else {
             ctx.fillStyle = "#c0d8b0"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.strokeStyle = "#a0c090"; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); } for(let i=0; i<canvas.height; i+=16) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
             ctx.fillStyle = "#5a5a5a"; ctx.fillRect(0, 0, canvas.width, 16); ctx.fillRect(0, 176, canvas.width, 16); ctx.fillRect(0, 0, 16, canvas.height); ctx.fillRect(240, 0, 16, canvas.height); 
         }
 
-        // 第六关坑洞/地砖
+        // Level 6 holes/tiles
         if (currentLevel === 6) {
             ctx.fillStyle = '#000'; boss.holes.forEach(h => { ctx.beginPath(); ctx.arc(h.x|0, h.y|0, h.radius|0, 0, Math.PI*2); ctx.fill(); });
             if (boss.state !== 'hidden') { ctx.save(); ctx.globalAlpha = boss.alpha || 1; ctx.fillStyle = '#a8b898'; ctx.beginPath(); ctx.arc(boss.x|0, boss.y|0, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillRect((boss.x-14)|0, (boss.y-12)|0, 8, 8); ctx.fillRect((boss.x+6)|0, (boss.y-12)|0, 8, 8); ctx.fillRect((boss.x-10)|0, (boss.y+10)|0, 20, 6); ctx.restore(); }
             ctx.fillStyle = '#c0d8b0'; ctx.strokeStyle = '#5a5a5a'; ctx.lineWidth = 2; boss.tiles.forEach(t => { if (t.state !== 'idle') { ctx.save(); ctx.translate(t.x|0, (t.y - t.z)|0); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-8, (-8 + t.z)|0, 16, 16); ctx.fillStyle = '#c0d8b0'; ctx.fillRect(-8, -8, 16, 16); ctx.strokeRect(-8, -8, 16, 16); ctx.restore(); } });
         }
 
-        // 绘制 Boss
+        // Draw Boss
         if (boss.hp > 0 && (boss.invuln === 0 || Math.floor(Date.now() / 50) % 2 === 0)) {
             if (currentLevel === 10) {
                 if (!boss.invisTimer || boss.invisTimer <= 0) {
@@ -990,12 +978,12 @@
                     // Author Body
                     ctx.fillStyle = "#111"; ctx.fillRect(-12, -16, 24, 32); 
                     ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(0, -18, 10, 0, Math.PI*2); ctx.fill();
-                    // 绿色的代码眼睛 { }
+                    // Green code eyes { }
                     ctx.fillStyle = "#0f0"; ctx.font = "12px monospace"; ctx.fillText("{ }", -9, -15);
                     ctx.restore();
                 }
                 
-                // 绘制蠕虫大军
+                // Draw worm army
                 if (boss.worms) {
                     boss.worms.forEach(w => {
                         for (let i = w.numSegments - 1; i >= 0; i--) {
@@ -1038,7 +1026,7 @@
             }
         }
 
-        // 画弹幕
+        // Draw projectiles
         projectiles.forEach(p => {
             if (p.type === 'powder') { ctx.fillStyle = "#fff"; ctx.fillRect((p.x-5)|0, (p.y-5)|0, 10, 10); }
             else if (p.type === 'rod_fire') { ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5, 0, Math.PI*2); ctx.fill(); }
@@ -1054,7 +1042,7 @@
             else { ctx.fillStyle = '#f39c12'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
         });
 
-        // 绘制炸弹与爆炸
+        // Draw bombs and explosions
         bombs.forEach(b => {
             if (b.state === 'ticking') {
                 ctx.fillStyle = b.timer % 10 < 5 ? "#000" : "#e74c3c";
@@ -1066,14 +1054,14 @@
             }
         });
 
-        // 钩爪
+        // Hookshot
         if (hookshot.active) {
             ctx.strokeStyle = "#8e44ad"; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(player.x|0, (player.y - player.z)|0); ctx.lineTo(hookshot.x|0, hookshot.y|0); ctx.stroke();
             ctx.fillStyle = "#9b59b6"; ctx.fillRect((hookshot.x - 3)|0, (hookshot.y - 3)|0, 6, 6);
         }
 
-        // 玩家
+        // Player
         if (player.invuln % 4 < 2) {
             if (player.z > 0 && currentLevel !== 4 && currentLevel !== 9 && currentLevel !== 10) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(player.x|0, player.y|0, 8, 4, 0, 0, Math.PI*2); ctx.fill(); }
             ctx.save(); ctx.translate(player.x|0, (player.y - player.z)|0); 
