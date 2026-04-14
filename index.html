@@ -148,6 +148,22 @@
         rocks.length = 0;
         windX = 0;
         
+        // 修复跨关卡位移Bug：重置玩家状态和安全坐标
+        player.z = 0;
+        player.vz = 0;
+        player.vx = 0;
+        player.vy = 0;
+        player.state = 'idle';
+        player.invuln = 60; // 进图提供短暂无敌帧
+        
+        if (currentLevel === 7) {
+            player.x = 128; player.y = 100; // 塔顶中心
+        } else if (currentLevel === 8) {
+            player.x = 128; player.y = 160; // 岩浆下方的安全陆地
+        } else {
+            player.x = 128; player.y = 150; // 标准出生点
+        }
+        
         let bData = BOSS_DATA[currentLevel - 1];
         bossNameEl.innerText = `BOSS: ${currentLevel}/10 ${bData.name}`;
         boss.hp = bData.hp;
@@ -304,7 +320,10 @@
         if (currentLevel === 7) {
             player.x += windX;
             if ((player.x < 32 || player.x > 224 || player.y < 32 || player.y > 160) && player.z === 0) {
-                player.hp--; updateHearts(); player.x = 128; player.y = 100; player.invuln = 60;
+                if (player.invuln <= 0) { // Fix: Prevent double damage if knocked back into hazard
+                    player.hp--; updateHearts(); player.invuln = 60;
+                }
+                player.x = 128; player.y = 100; player.state = 'idle';
                 if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
             }
         }
@@ -312,7 +331,10 @@
         // Level 8 lava
         if (currentLevel === 8 && player.z === 0) {
             if (player.x > 48 && player.x < 208 && player.y > 48 && player.y < 144) {
-                player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60;
+                if (player.invuln <= 0) { // Fix: Prevent double damage if knocked back into lava
+                    player.hp--; updateHearts(); player.invuln = 60;
+                }
+                player.x = 128; player.y = 160; player.state = 'idle';
                 if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
             }
         }
@@ -399,10 +421,14 @@
             else { player.state = 'idle'; }
         }
 
-        // Boundary limits
+        // Boundary limits (Fix: Applied proper outer bounds to levels 7 and 8)
         if (currentLevel === 4) {
             player.x = Math.max(16, Math.min(256 - 16, player.x)); player.y = Math.max(30, Math.min(192 - 16, player.y));
-        } else if (currentLevel !== 7 && currentLevel !== 8) {
+        } else if (currentLevel === 7) {
+            player.x = Math.max(16, Math.min(256 - 16, player.x)); player.y = Math.max(16, Math.min(192 - 16, player.y));
+        } else if (currentLevel === 8) {
+            player.x = Math.max(8, Math.min(256 - 8, player.x)); player.y = Math.max(8, Math.min(192 - 8, player.y));
+        } else {
             player.x = Math.max(24, Math.min(256 - 24, player.x)); player.y = Math.max(32, Math.min(192 - 24, player.y));
         }
 
