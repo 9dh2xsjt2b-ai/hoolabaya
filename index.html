@@ -2,99 +2,272 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link's Awakening DX: Classic Boss Gauntlet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Link's Awakening DX: Boss Gauntlet 25.0</title>
     <style>
         body {
-            margin: 0;
-            background: #000;
-            color: #fff;
+            margin: 0; background: #000; color: #fff;
             font-family: 'Courier New', Courier, monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            user-select: none;
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; height: 100vh; overflow: hidden;
+            user-select: none; -webkit-user-select: none;
         }
         #game-wrapper {
-            position: relative;
-            border: 20px solid #4a4a4a;
+            position: relative; border: 15px solid #4a4a4a;
             border-radius: 10px 10px 30px 10px;
             box-shadow: inset 0 0 10px #000, 0 0 20px rgba(255,255,255,0.2);
-            background: #000;
-            padding: 10px;
+            background: #000; padding: 10px; max-width: 100%; box-sizing: border-box;
         }
         canvas {
-            image-rendering: pixelated;
-            image-rendering: crisp-edges;
-            width: 512px;
-            height: 384px;
-            background: #c0d8b0;
-            display: block;
-            border: 2px solid #000;
+            image-rendering: pixelated; image-rendering: crisp-edges;
+            width: 512px; max-width: 100%; height: auto;
+            background: #c0d8b0; display: block; border: 2px solid #000;
         }
         #ui-layer {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            right: 20px;
-            display: flex;
-            justify-content: space-between;
-            pointer-events: none;
+            position: absolute; top: 20px; left: 20px; right: 20px;
+            display: flex; justify-content: space-between; pointer-events: none;
         }
-        .hearts {
-            color: #ff3333;
-            font-size: 24px;
-            text-shadow: 2px 2px 0 #000;
-            letter-spacing: 2px;
+        .hearts { color: #ff3333; font-size: 24px; text-shadow: 2px 2px 0 #000; letter-spacing: 2px; }
+        
+        /* Overlays & Menus */
+        .overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; flex-direction: column;
+            align-items: center; justify-content: center; z-index: 100; text-align: center;
         }
-        #instructions {
-            margin-top: 15px;
-            color: #ccc;
-            text-align: center;
-            line-height: 1.6;
-            font-size: 14px;
+        .menu-title { font-size: 32px; color: #f1c40f; margin-bottom: 20px; text-shadow: 2px 2px #000; }
+        .btn {
+            background: #2ecc71; color: white; border: none; padding: 12px 24px;
+            font-size: 18px; font-weight: bold; border-radius: 6px; cursor: pointer;
+            margin: 10px; font-family: inherit; box-shadow: 0 4px 0 #27ae60;
         }
+        .btn:active { transform: translateY(4px); box-shadow: 0 0 0; }
+        select { padding: 10px; font-size: 16px; font-family: inherit; margin: 10px; background: #333; color: #fff; border: 2px solid #f1c40f; }
+        
+        #quote-box {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 80%; background: rgba(0,0,0,0.8); border: 2px solid #fff;
+            padding: 10px; color: #fff; font-size: 14px; text-align: center;
+            border-radius: 8px; display: none; z-index: 50; line-height: 1.4;
+        }
+
+        #pause-btn {
+            position: absolute; z-index: 50; padding: 6px 12px; top: 20px; right: 20px;
+            background: #fff; color: #000; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; display: none;
+        }
+
+        #mobile-controls {
+            display: none; width: 100%; max-width: 600px; justify-content: space-between;
+            padding: 10px; box-sizing: border-box; margin-top: 10px;
+        }
+        .dpad, .action-btns { display: grid; gap: 6px; }
+        .dpad { grid-template-columns: 55px 55px 55px; grid-template-rows: 55px 55px 55px; }
+        .action-btns { grid-template-columns: repeat(4, 55px); grid-template-rows: repeat(2, 55px); align-content: end; justify-content: end;}
+        .m-btn {
+            background: rgba(255, 255, 255, 0.15); border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 50%; color: #fff; font-weight: bold; font-size: 14px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation;
+        }
+        
+        #instructions { margin-top: 15px; color: #ccc; text-align: center; line-height: 1.6; font-size: 14px; }
         .highlight { color: #f1c40f; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            #game-wrapper { border-width: 5px; padding: 5px; border-radius: 5px; }
+            .hearts { font-size: 18px; }
+            #instructions { display: none; }
+            #mobile-controls { display: flex; }
+            #pause-btn { top: 10px; right: 10px; padding: 5px 10px; font-size: 12px; }
+        }
     </style>
 </head>
 <body>
 
+<button id="pause-btn">Pause (Esc)</button>
+
 <div id="game-wrapper">
+    <!-- Main Menu -->
+    <div id="main-menu" class="overlay">
+        <div class="menu-title">Link's Awakening DX<br>Boss Gauntlet</div>
+        <div>
+            <label style="color:#fff; font-size:18px;">Select Difficulty:</label><br>
+            <select id="difficulty-select">
+                <option value="easy">Easy (More HP, Weak Bosses)</option>
+                <option value="normal" selected>Normal (Standard)</option>
+                <option value="hard">Hard (x2 Boss HP, Take x2 Dmg)</option>
+            </select>
+        </div>
+        <button id="start-game-btn" class="btn">START GAME</button>
+    </div>
+
+    <!-- Pause Menu -->
+    <div id="pause-menu" class="overlay" style="display: none; background: rgba(0,0,0,0.6);">
+        <div class="menu-title">PAUSED</div>
+        <button id="resume-btn" class="btn">Resume</button>
+    </div>
+
+    <!-- Transition Overlay -->
+    <div id="transition-overlay" class="overlay" style="display: none; background: #000;">
+        <div id="transition-text" style="font-size: 20px; color: #fff; white-space: pre-wrap; line-height: 1.5;"></div>
+    </div>
+
     <div id="ui-layer">
         <div>
             <div style="font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000; margin-bottom: 4px;">- LIFE -</div>
             <div id="player-hearts" class="hearts">❤️❤️❤️</div>
         </div>
         <div id="boss-info" style="text-align: right;">
-            <div id="boss-name" style="font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000;">BOSS: 1/10</div>
+            <div id="boss-name" style="font-size: 12px; font-weight: bold; color: #fff; text-shadow: 1px 1px 0 #000;">BOSS: 1/11</div>
             <div id="boss-hp-bar" style="width: 60px; height: 4px; background: #333; border: 1px solid #fff; margin-top: 4px;">
                 <div id="boss-hp-fill" style="width: 100%; height: 100%; background: #f1c40f;"></div>
             </div>
         </div>
     </div>
+    
+    <div id="quote-box"></div>
     <canvas id="gameCanvas" width="256" height="192"></canvas>
 </div>
 
 <div id="instructions">
-    <span class="highlight">WASD</span>: Move | <span class="highlight">J</span>: Sword | <span class="highlight">K</span>: Pot | <span class="highlight">L</span>: Dash | <span class="highlight">H</span>: Hook | <span class="highlight">U</span>: Jump | <span class="highlight">B</span>: Bomb | <span class="highlight">P</span>: Powder | <span class="highlight">R</span>: Rod | <span class="highlight">C</span>: Bow<br>
-    Level 10: The Creator "Author"! Beware his bullet hell and time freeze!
+    <span class="highlight">WASD</span>: Move | <span class="highlight">J</span>: Sword | <span class="highlight">L</span>: Dash | <span class="highlight">H</span>: Hook | <span class="highlight">U</span>: Jump<br>
+    <span class="highlight">B</span>: Bomb | <span class="highlight">P</span>: Powder | <span class="highlight">R</span>: Rod | <span class="highlight">C</span>: Bow | <span class="highlight">X</span>: Boomerang<br>
+    Level 10: Pikachu! | Level 11: The Creator "Author"!
+</div>
+
+<div id="mobile-controls">
+    <div class="dpad">
+        <div class="m-btn" id="btn-up" style="grid-column: 2; grid-row: 1;">▲</div>
+        <div class="m-btn" id="btn-left" style="grid-column: 1; grid-row: 2;">◀</div>
+        <div class="m-btn" id="btn-right" style="grid-column: 3; grid-row: 2;">▶</div>
+        <div class="m-btn" id="btn-down" style="grid-column: 2; grid-row: 3;">▼</div>
+    </div>
+    <div class="action-btns">
+        <div class="m-btn" id="btn-p" style="background: rgba(155, 89, 182, 0.4);">Pwd P</div>
+        <div class="m-btn" id="btn-r" style="background: rgba(231, 76, 60, 0.4);">Rod R</div>
+        <div class="m-btn" id="btn-c" style="background: rgba(46, 204, 113, 0.4);">Bow C</div>
+        <div class="m-btn" id="btn-x" style="background: rgba(241, 196, 15, 0.8); color: black;">Boom X</div>
+        
+        <div class="m-btn" id="btn-h" style="background: rgba(52, 152, 219, 0.4);">Hok H</div>
+        <div class="m-btn" id="btn-b" style="background: rgba(52, 73, 94, 0.4);">Bmb B</div>
+        <div class="m-btn" id="btn-u" style="background: rgba(241, 196, 15, 0.4);">Jmp U</div>
+        <div class="m-btn" id="btn-j" style="background: rgba(230, 126, 34, 0.6); border-width: 3px;">Swd J</div>
+    </div>
 </div>
 
 <script>
+    // --- Audio System ---
+    let audioCtx = null;
+    function initAudio() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+    function sfx(type) {
+        if (!audioCtx) return;
+        const t = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        
+        if (type === 'hit') {
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, t); osc.frequency.exponentialRampToValueAtTime(40, t + 0.2);
+            gain.gain.setValueAtTime(0.5, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'shoot') {
+            osc.type = 'square'; osc.frequency.setValueAtTime(600, t); osc.frequency.exponentialRampToValueAtTime(200, t + 0.1);
+            gain.gain.setValueAtTime(0.1, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+            osc.start(t); osc.stop(t + 0.1);
+        } else if (type === 'bossHit') {
+            osc.type = 'square'; osc.frequency.setValueAtTime(100, t); osc.frequency.exponentialRampToValueAtTime(50, t + 0.2);
+            gain.gain.setValueAtTime(0.3, t); gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
+        } else if (type === 'win') {
+            osc.type = 'sine'; osc.frequency.setValueAtTime(400, t); osc.frequency.setValueAtTime(600, t + 0.1); osc.frequency.setValueAtTime(800, t + 0.2);
+            gain.gain.setValueAtTime(0.2, t); gain.gain.linearRampToValueAtTime(0, t + 0.5);
+            osc.start(t); osc.stop(t + 0.5);
+        }
+    }
+
+    // --- Variables & Quotes ---
     const canvas = document.getElementById('gameCanvas');
     const ctx = canvas.getContext('2d');
     const heartsEl = document.getElementById('player-hearts');
     const bossNameEl = document.getElementById('boss-name');
     const bossHpFillEl = document.getElementById('boss-hp-fill');
+    const quoteBox = document.getElementById('quote-box');
+    const transOverlay = document.getElementById('transition-overlay');
+    const transText = document.getElementById('transition-text');
 
     const FPS = 60;
-
     const keys = {};
+    let gameState = 'menu'; // menu, playing, paused, transition
+    let difficulty = 'normal'; 
+    let quoteTimeout = null;
+
+    const QUOTES = {
+        1: { intro: ["BUZZZZZ! BUZZZZ! OUTZZZIDER!"], hit: [], death: [] },
+        2: { intro: ["HO HO HO! I'm your bad guy this time!! HO HO HO!"], hit: ["NYAH NYAH! You can't hurt me as long as I have my bottle!"], death: ["You- you broke my bottle! Why, you... You make me hopping mad!!!"] },
+        3: { intro: ["NEENER NEENER! You can't find me! NYAH! NYAH!"], hit: [], death: [] },
+        4: { intro: ["BLOOOP! BLOOOP! GLUB! GLUB! OGGGH! FOOOOD! BLOOOOP! GLUB!"], hit: [], death: [] },
+        5: { intro: ["Ssso... you are the outsssider, come to wake the Wind Fisssh... KEEE-HEE-HEEEH! I shall eat you!"], hit: ["TSSSK, TSSSK! You don't know anything! ...The island will sssink and vanish if the Fisssh wakes up!"], death: ["KEEE-HEE-HEEEH! What a fool... KEE-HEE-HEH!"] },
+        6: { intro: ["Hey dummy! Need a hint? My weak point is... !! Whoops! There I go talking too much again..."], hit: ["Okay, listen up! If the Wind Fish wakes up, everything on this island will be gone forever! And I do mean... EVERYTHING!"], death: ["My energy... gone... I...lost! But you will be lost too, if the Wind Fish wakes! Same as me...you ...are...in... his... dream..."] },
+        7: { intro: ["Hee hee! You've made it this far! But you're not going any further! The Eagle will get you!"], hit: [], death: [] },
+        8: { intro: ["CRACKLE-FROOOWSH! You're finished! I will never let you play the Instruments of the Sirens!"], hit: [], death: [] },
+        9: { intro: [], hit: [], death: [] },
+        10: { intro: ["Pika pika! (Sparks fly as the electric mouse appears!)"], hit: ["Piiiika! (That hurts!)"], death: ["Pika-chuuuuuu... (Faints...)"] },
+        11: { intro: ["You defeated them all? They are just my guards, I'm the master, and you are nobody, prepare yourselves!!!"], hit: [], death: [] }
+    };
+
+    function playQuote(lvl, type) {
+        const qList = QUOTES[lvl]?.[type];
+        if (qList && qList.length > 0) {
+            const msg = qList[Math.floor(Math.random() * qList.length)];
+            quoteBox.innerText = `"${msg}"`;
+            quoteBox.style.display = 'block';
+            if (quoteTimeout) clearTimeout(quoteTimeout);
+            quoteTimeout = setTimeout(() => { quoteBox.style.display = 'none'; }, 4000);
+        }
+    }
+
+    // --- UI Controls ---
+    document.getElementById('start-game-btn').onclick = () => {
+        initAudio();
+        difficulty = document.getElementById('difficulty-select').value;
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('pause-btn').style.display = 'block';
+        
+        player.maxHp = (difficulty === 'easy') ? 6 : 3;
+        player.hp = player.maxHp;
+        updateHearts();
+
+        currentLevel = 1;
+        initBoss();
+        gameState = 'playing';
+    };
+
+    document.getElementById('pause-btn').onclick = togglePause;
+    document.getElementById('resume-btn').onclick = togglePause;
+
+    function togglePause() {
+        if (gameState === 'playing') {
+            gameState = 'paused';
+            document.getElementById('pause-menu').style.display = 'flex';
+        } else if (gameState === 'paused') {
+            gameState = 'playing';
+            document.getElementById('pause-menu').style.display = 'none';
+        }
+    }
+
+    // --- 修复随机移动 BUG (清理卡死的按键) ---
+    window.addEventListener('blur', () => {
+        for (let k in keys) keys[k] = false;
+    });
+
+    // Keyboard
     window.addEventListener('keydown', e => { 
         keys[e.code] = true; 
+        if (e.code === 'Escape' || e.code === 'Enter') togglePause();
+        if (gameState !== 'playing') return;
+
         if (e.code === 'KeyJ' || e.code === 'Space') playerAttack();
         if (e.code === 'KeyK') playerInteract();
         if (e.code === 'KeyL') playerDash();
@@ -104,70 +277,77 @@
         if (e.code === 'KeyP') playerDropPowder();
         if (e.code === 'KeyR') playerShootRod();
         if (e.code === 'KeyC') playerShootArrow();
+        if (e.code === 'KeyX') playerShootBoomerang();
     });
     window.addEventListener('keyup', e => keys[e.code] = false);
 
+    // Mobile
+    function bindTouch(id, code, actionFn) {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        btn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); keys[code] = true;
+            if (gameState === 'playing' && actionFn) actionFn();
+        });
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[code] = false; });
+        // 修复滑动离开按钮导致的随机移动 BUG
+        btn.addEventListener('touchcancel', (e) => { e.preventDefault(); keys[code] = false; });
+    }
+    bindTouch('btn-up', 'KeyW'); bindTouch('btn-down', 'KeyS'); bindTouch('btn-left', 'KeyA'); bindTouch('btn-right', 'KeyD');
+    bindTouch('btn-j', 'KeyJ', playerAttack); bindTouch('btn-u', 'KeyU', playerJump); bindTouch('btn-h', 'KeyH', playerHookshot);
+    bindTouch('btn-b', 'KeyB', playerDropBomb); bindTouch('btn-p', 'KeyP', playerDropPowder); bindTouch('btn-r', 'KeyR', playerShootRod);
+    bindTouch('btn-c', 'KeyC', playerShootArrow); bindTouch('btn-x', 'KeyX', playerShootBoomerang);
+
+    // --- Game Logic ---
     let currentLevel = 1; 
-    let projectiles = [];
-    let bombs = [];
-    let rocks = [];
-    let windX = 0;
+    let projectiles = []; let bombs = []; let rocks = []; let windX = 0;
 
     let player = {
-        x: 128, y: 140, z: 0, vz: 0,
-        radius: 6, speed: 1.5,
-        hp: 3, maxHp: 3,
-        dir: 'up', state: 'idle', 
-        timer: 0, invuln: 0,
-        vx: 0, vy: 0, hasHit: false, carrying: false,
-        attackCooldown: 0,
-        powderCooldown: 0,
-        arrowCooldown: 0,
-        freezeTimer: 0
+        x: 128, y: 140, z: 0, vz: 0, radius: 6, speed: 1.5,
+        hp: 3, maxHp: 3, dir: 'up', state: 'idle', 
+        timer: 0, invuln: 0, vx: 0, vy: 0, hasHit: false, carrying: false,
+        attackCooldown: 0, powderCooldown: 0, arrowCooldown: 0, freezeTimer: 0
     };
 
+    // 确保回旋镖全局定义，防止报错
     let hookshot = { active: false, x: 0, y: 0, vx: 0, vy: 0, length: 0, returning: false, attachedBoss: false };
+    let boomerang = { active: false, x: 0, y: 0, vx: 0, vy: 0, returning: false, timer: 0 };
     let boss = { hp: 4, maxHp: 4, invuln: 0, state: 'move', timer: 0 };
 
     const BOSS_DATA = [
-        { name: "Moldorm", hp: 4 },
-        { name: "Genie", hp: 5 },
-        { name: "Slime Eye", hp: 12 },
-        { name: "Angler Fish", hp: 16 },
-        { name: "Slime Eel", hp: 5 },
-        { name: "Facade", hp: 5 },
-        { name: "Evil Eagle", hp: 14 },
-        { name: "Hot Head", hp: 16 },
-        { name: "Shadow Nightmares", hp: 0 }, // Different phase HPs
-        { name: "The Author", hp: 24 }
+        { name: "Moldorm", hp: 4 }, // 1
+        { name: "Genie", hp: 5 }, // 2
+        { name: "Slime Eye", hp: 12 }, // 3
+        { name: "Angler Fish", hp: 12 }, // 4
+        { name: "Slime Eel", hp: 5 }, // 5
+        { name: "Facade", hp: 5 }, // 6
+        { name: "Evil Eagle", hp: 14 }, // 7
+        { name: "Hot Head", hp: 16 }, // 8
+        { name: "Shadow Nightmares", hp: 0 }, // 9
+        { name: "Pikachu", hp: 18 }, // 10
+        { name: "The Author", hp: 24 } // 11
     ];
 
     function initBoss() {
-        projectiles.length = 0;
-        bombs.length = 0;
-        rocks.length = 0;
-        windX = 0;
+        projectiles.length = 0; bombs.length = 0; rocks.length = 0;
+        windX = 0; 
+        hookshot.active = false; 
+        boomerang.active = false;
+        for(let k in keys) keys[k] = false; // 重置按键状态，防止换关卡卡键
         
-        // 修复跨关卡位移Bug：重置玩家状态和安全坐标
-        player.z = 0;
-        player.vz = 0;
-        player.vx = 0;
-        player.vy = 0;
-        player.state = 'idle';
-        player.invuln = 60; // 进图提供短暂无敌帧
+        player.z = 0; player.vz = 0; player.vx = 0; player.vy = 0;
+        player.state = 'idle'; player.invuln = 60;
         
-        if (currentLevel === 7) {
-            player.x = 128; player.y = 100; // 塔顶中心
-        } else if (currentLevel === 8) {
-            player.x = 128; player.y = 160; // 岩浆下方的安全陆地
-        } else {
-            player.x = 128; player.y = 150; // 标准出生点
-        }
+        if (currentLevel === 7) { player.x = 128; player.y = 100; }
+        else if (currentLevel === 8) { player.x = 128; player.y = 160; }
+        else { player.x = 128; player.y = 150; }
         
         let bData = BOSS_DATA[currentLevel - 1];
-        bossNameEl.innerText = `BOSS: ${currentLevel}/10 ${bData.name}`;
-        boss.hp = bData.hp;
-        boss.maxHp = bData.hp;
+        bossNameEl.innerText = `BOSS: ${currentLevel}/11 ${bData.name}`;
+        
+        let hpMult = (difficulty === 'easy') ? 0.5 : (difficulty === 'hard' ? 2 : 1);
+        boss.maxHp = Math.max(1, Math.floor(bData.hp * hpMult));
+        boss.hp = boss.maxHp; 
         boss.invuln = 0;
 
         if (currentLevel === 1) {
@@ -196,46 +376,99 @@
         } else if (currentLevel === 8) {
             boss.state = 'lava_hide'; boss.timer = 90; boss.x = 128; boss.y = 96; boss.radius = 16; boss.vx = 0; boss.vy = 0;
         } else if (currentLevel === 9) {
-            boss.shadowPhase = 1;
-            setupShadowPhase();
+            boss.shadowPhase = 1; setupShadowPhase();
         } else if (currentLevel === 10) {
+            boss.state = 'pika_idle'; boss.timer = 60;
+            boss.x = 128; boss.y = 96; boss.radius = 12;
+            boss.tailAngle = 0; boss.vx = 0; boss.vy = 0;
+        } else if (currentLevel === 11) {
             boss.state = 'author_float'; boss.timer = 0; boss.freezeCooldown = 500;
             boss.invisCooldown = 1000; boss.invisTimer = 0;
-            boss.x = 128; boss.y = 96; boss.radius = 16;
-            boss.worms = []; // Initialize worm army storage array
+            boss.x = 128; boss.y = 96; boss.radius = 16; boss.worms = [];
+            boss.taunts = []; boss.tauntTimer = 30; // 专属弹幕嘲讽计时器
         }
+        
+        playQuote(currentLevel, 'intro');
         updateBossUI();
     }
 
-    // Level 9 exclusive: Shadow Boss 6 phases initialization
     function setupShadowPhase() {
         boss.invuln = 0; boss.timer = 60; boss.z = 0; boss.vz = 0;
-        projectiles = projectiles.filter(p => p.type === 'powder' || p.type === 'rod_fire'); // Clear previous projectiles
+        projectiles = projectiles.filter(p => p.type === 'powder' || p.type === 'rod_fire');
         let names = ["Giant Gel", "Agahnim", "Moldorm Shadow", "Ganon's Shadow", "Lanmola", "DethI"];
-        bossNameEl.innerText = `BOSS: 9/10 ${names[boss.shadowPhase - 1]}`;
+        bossNameEl.innerText = `BOSS: 9/11 ${names[boss.shadowPhase - 1]}`;
+
+        let hpMult = (difficulty === 'easy') ? 0.5 : (difficulty === 'hard' ? 2 : 1);
+        const setHP = (base) => { boss.maxHp = Math.max(1, Math.floor(base * hpMult)); boss.hp = boss.maxHp; };
 
         if(boss.shadowPhase === 1) { 
-            boss.hp = 3; boss.maxHp = 3; boss.radius = 20; boss.state = 'gel_idle'; boss.vx = 0; boss.vy = 0;
+            setHP(3); boss.radius = 20; boss.state = 'gel_idle'; boss.vx = 0; boss.vy = 0;
         } else if(boss.shadowPhase === 2) { 
-            boss.hp = 4; boss.maxHp = 4; boss.state = 'agahnim_prep'; boss.targetX = 128; boss.targetY = 40; boss.radius = 16;
+            setHP(4); boss.state = 'agahnim_prep'; boss.targetX = 128; boss.targetY = 40; boss.radius = 16;
         } else if(boss.shadowPhase === 3) { 
-            boss.hp = 8; boss.maxHp = 8; boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 2.5; boss.state = 'moldorm_move';
+            setHP(8); boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 2.5; boss.state = 'moldorm_move';
             boss.turnDir = 1; boss.turnSpeed = 0.08; boss.segments = []; boss.numSegments = 7; boss.segmentRadius = 14; 
             for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y}); boss.history = [];
         } else if(boss.shadowPhase === 4) { 
-            boss.hp = 16; boss.maxHp = 16; boss.state = 'ganon_move'; boss.radius = 20; boss.trident = null;
+            setHP(16); boss.state = 'ganon_move'; boss.radius = 20; boss.trident = null;
         } else if(boss.shadowPhase === 5) { 
-            boss.hp = 1; boss.maxHp = 1; boss.state = 'lanmola_move'; boss.radius = 12; boss.vx = 4; boss.vy = 3;
+            setHP(1); boss.state = 'lanmola_move'; boss.radius = 12; boss.vx = 4; boss.vy = 3;
         } else if(boss.shadowPhase === 6) { 
-            boss.hp = 12; boss.maxHp = 12; boss.state = 'dethi_swing'; boss.radius = 24; boss.eyeOpen = false; boss.armAngle = 0; 
+            setHP(12); boss.state = 'dethi_swing'; boss.radius = 24; boss.eyeOpen = false; boss.armAngle = 0; 
         }
         updateBossUI();
     }
 
-    // New item actions
+    function levelComplete(msg, nextLevelNum) {
+        gameState = 'transition';
+        playQuote(currentLevel, 'death');
+        sfx('win');
+        
+        player.maxHp++;
+        player.hp = player.maxHp;
+        updateHearts();
+        
+        transText.innerText = msg + "\n\nGot a Heart Container! Health fully restored!";
+        transOverlay.style.display = 'flex';
+        setTimeout(() => {
+            transOverlay.style.display = 'none';
+            currentLevel = nextLevelNum;
+            initBoss();
+            gameState = 'playing';
+        }, 4000);
+    }
+
+    function triggerGameOver() {
+        gameState = 'transition';
+        transText.innerText = "Game Over...\nThe Wind Fish slumbers on.";
+        transOverlay.style.display = 'flex';
+        setTimeout(() => {
+            transOverlay.style.display = 'none';
+            player.hp = player.maxHp;
+            initBoss();
+            gameState = 'playing';
+        }, 3000);
+    }
+
+    // Weapons
+    function playerShootBoomerang() {
+        if (player.freezeTimer > 0) return;
+        if (!boomerang.active && player.state !== 'hurt') {
+            sfx('shoot');
+            boomerang.active = true; boomerang.returning = false; boomerang.timer = 25;
+            boomerang.x = player.x; boomerang.y = player.y;
+            let s = 8; boomerang.vx = 0; boomerang.vy = 0;
+            if (player.dir === 'up') boomerang.vy = -s;
+            if (player.dir === 'down') boomerang.vy = s;
+            if (player.dir === 'left') boomerang.vx = -s;
+            if (player.dir === 'right') boomerang.vx = s;
+        }
+    }
+
     function playerDropPowder() {
         if (player.freezeTimer > 0) return;
         if (player.state !== 'hurt' && player.powderCooldown <= 0 && !projectiles.some(p => p.type === 'powder')) {
+            sfx('shoot');
             let px = player.x + (player.dir==='left'?-15:player.dir==='right'?15:0);
             let py = player.y + (player.dir==='up'?-15:player.dir==='down'?15:0);
             projectiles.push({x: px, y: py, vx: 0, vy: 0, life: 25, type: 'powder'});
@@ -245,16 +478,17 @@
     function playerShootRod() {
         if (player.freezeTimer > 0) return;
         if (player.state !== 'hurt' && !projectiles.some(p => p.type === 'rod_fire')) {
+            sfx('shoot');
             let vx = player.dir==='left'?-6:player.dir==='right'?6:0;
             let vy = player.dir==='up'?-6:player.dir==='down'?6:0;
-            if(vx===0 && vy===0) vy = 6; // Default downward
+            if(vx===0 && vy===0) vy = 6;
             projectiles.push({x: player.x, y: player.y, vx: vx, vy: vy, life: 60, type: 'rod_fire'});
         }
     }
-
     function playerShootArrow() {
         if (player.freezeTimer > 0) return;
         if (player.state !== 'hurt' && !projectiles.some(p => p.type === 'arrow') && player.arrowCooldown <= 0) {
+            sfx('shoot');
             let vx = player.dir === 'left' ? -8 : player.dir === 'right' ? 8 : 0;
             let vy = player.dir === 'up' ? -8 : player.dir === 'down' ? 8 : 0;
             if (vx === 0 && vy === 0) vy = 8;
@@ -262,11 +496,8 @@
             player.arrowCooldown = 10;
         }
     }
-
-    // Original actions
     function playerInteract() {
-        if (player.freezeTimer > 0) return;
-        if (currentLevel !== 2) return;
+        if (player.freezeTimer > 0 || currentLevel !== 2) return;
         if (player.carrying) {
             player.carrying = false; boss.state = 'thrown'; boss.vx = 0; boss.vy = 0;
             if (player.dir === 'up') boss.vy = -5; if (player.dir === 'down') boss.vy = 5;
@@ -276,19 +507,19 @@
         }
     }
     function playerDash() {
-        if (player.freezeTimer > 0) return;
-        if (currentLevel === 4) return;
+        if (player.freezeTimer > 0 || currentLevel === 4) return;
         if (player.state === 'idle' || player.state === 'walk') { player.state = 'dash'; player.timer = 15; player.hasHit = false; player.vx = 0; player.vy = 0; }
     }
     function playerJump() { 
-        if (player.freezeTimer > 0) return;
-        if (currentLevel === 4) return; 
-        if (player.z === 0 && (player.state === 'idle' || player.state === 'walk')) player.vz = 6; 
+        if (player.freezeTimer > 0 || currentLevel === 4) return; 
+        if (player.z === 0 && (player.state === 'idle' || player.state === 'walk')) {
+            player.vz = 6;
+        }
     }
     function playerHookshot() {
-        if (player.freezeTimer > 0) return;
-        if (currentLevel === 4) return;
+        if (player.freezeTimer > 0 || currentLevel === 4) return;
         if (player.state === 'idle' || player.state === 'walk') {
+            sfx('shoot');
             player.state = 'hookshot'; hookshot.active = true; hookshot.returning = false; hookshot.length = 0; hookshot.attachedBoss = false; hookshot.x = player.x; hookshot.y = player.y;
             let s = 6; hookshot.vx = 0; hookshot.vy = 0;
             if (player.dir === 'up') hookshot.vy = -s; if (player.dir === 'down') hookshot.vy = s;
@@ -299,11 +530,15 @@
         if (player.freezeTimer > 0) return;
         if (player.state === 'idle' || player.state === 'walk') { 
             player.state = 'attack'; player.timer = 12; player.hasHit = false; player.vx = 0; player.vy = 0; 
+            sfx('shoot');
         }
     }
     function playerDropBomb() {
         if (player.freezeTimer > 0) return;
-        if ((player.state === 'idle' || player.state === 'walk') && bombs.length < 2) bombs.push({x: player.x, y: player.y, timer: 90, state: 'ticking'});
+        if ((player.state === 'idle' || player.state === 'walk') && bombs.length < 2) {
+            sfx('shoot');
+            bombs.push({x: player.x, y: player.y, timer: 90, state: 'ticking'});
+        }
     }
 
     function update() {
@@ -316,49 +551,39 @@
             if (player.z <= 0) { player.z = 0; player.vz = 0; }
         }
 
-        // Level 7 strong wind
         if (currentLevel === 7) {
             player.x += windX;
             if ((player.x < 32 || player.x > 224 || player.y < 32 || player.y > 160) && player.z === 0) {
-                if (player.invuln <= 0) { // Fix: Prevent double damage if knocked back into hazard
-                    player.hp--; updateHearts(); player.invuln = 60;
-                }
+                if (player.invuln <= 0) { takeDamage(); }
                 player.x = 128; player.y = 100; player.state = 'idle';
-                if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
+                player.vx = 0; player.vy = 0;
             }
         }
-        
-        // Level 8 lava
         if (currentLevel === 8 && player.z === 0) {
             if (player.x > 48 && player.x < 208 && player.y > 48 && player.y < 144) {
-                if (player.invuln <= 0) { // Fix: Prevent double damage if knocked back into lava
-                    player.hp--; updateHearts(); player.invuln = 60;
-                }
+                if (player.invuln <= 0) { takeDamage(); }
                 player.x = 128; player.y = 160; player.state = 'idle';
-                if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); return; }
+                player.vx = 0; player.vy = 0;
             }
         }
 
-        // Bomb update
         for (let i = bombs.length - 1; i >= 0; i--) {
-            let b = bombs[i];
-            if (!b) break; // Fix for undefined array elements after level reset
+            let b = bombs[i]; if (!b) break;
             if (b.state === 'ticking') {
                 b.timer--;
                 if (b.timer <= 0) {
                     b.state = 'exploding'; b.timer = 15;
+                    sfx('hit');
                     if (currentLevel === 6 && boss.state === 'visible') {
                         if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) {
-                            boss.hp--; boss.invuln = 20; bgFlash();
-                            if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Entering Level 7!"); currentLevel = 7; initBoss(); updateHearts(); break; }
+                            boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI(); sfx('bossHit');
+                            if(Math.random() < 0.3) playQuote(6, 'hit');
+                            if (boss.hp <= 0) { levelComplete("Level 6 Cleared!\nEntering Level 7...", 7); break; }
                         }
                     }
-                    if (currentLevel === 7) {
-                        if (Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) { bossDamage7(); if(boss.hp <= 0) break; }
-                    }
+                    if (currentLevel === 7 && Math.hypot(boss.x - b.x, boss.y - b.y) < boss.radius + 24) { bossDamage7(); if(boss.hp <= 0) break; }
                     if (Math.hypot(player.x - b.x, player.y - b.y) < player.radius + 24 && player.invuln <= 0 && player.state !== 'hurt' && player.z < 10) {
-                        player.hp--; updateHearts(); triggerPlayerKnockback(b); player.invuln = 60;
-                        if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); break; }
+                        triggerPlayerKnockback(b); takeDamage();
                     }
                 }
             } else if (b.state === 'exploding') {
@@ -366,29 +591,25 @@
             }
         }
 
-        // Falling rock update
         for (let i = rocks.length - 1; i >= 0; i--) {
-            let r = rocks[i];
-            if (!r) break; // Fix for undefined array elements after level reset
+            let r = rocks[i]; if (!r) break;
             r.y += r.vy;
             if (r.y >= r.targetY) {
                 rocks.splice(i, 1);
             } else if (Math.hypot(player.x - r.x, player.y - r.y) < player.radius + 8 && player.z === 0) {
                 if (player.invuln <= 0 && player.state !== 'hurt') {
-                    player.hp--; updateHearts(); triggerPlayerKnockback(r); player.invuln = 60;
-                    if(player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); break; }
+                    triggerPlayerKnockback(r); takeDamage();
                 }
                 rocks.splice(i, 1); 
             }
         }
 
-        // Player state machine
+        // Player state update
         if (player.freezeTimer > 0) {
-            player.freezeTimer--;
-            player.state = 'idle';
+            player.freezeTimer--; player.state = 'idle';
         } else if (player.state === 'hurt') {
             player.x += player.vx; player.y += player.vy; player.vx *= 0.85; player.vy *= 0.85;
-            player.timer--; if (player.timer <= 0) player.state = 'idle';
+            player.timer--; if (player.timer <= 0) { player.state = 'idle'; player.vx = 0; player.vy = 0; }
         } else if (player.state === 'attack') {
             player.timer--; if (player.timer <= 0) player.state = 'idle';
             if (player.timer <= 12 && player.timer >= 2) checkSwordHit();
@@ -396,9 +617,7 @@
             player.timer--; let dashSpeed = 5;
             if (player.dir === 'up') player.y -= dashSpeed; if (player.dir === 'down') player.y += dashSpeed;
             if (player.dir === 'left') player.x -= dashSpeed; if (player.dir === 'right') player.x += dashSpeed;
-            if (player.timer <= 0) {
-                player.state = 'idle';
-            }
+            if (player.timer <= 0) player.state = 'idle';
         } else if (player.state === 'hookshot') {
             if (!hookshot.returning) {
                 hookshot.x += hookshot.vx; hookshot.y += hookshot.vy; hookshot.length += 6;
@@ -413,15 +632,16 @@
             }
         } else {
             let dx = 0, dy = 0;
-            if (keys['ArrowUp'] || keys['KeyW']) dy -= 1; if (keys['ArrowDown'] || keys['KeyS']) dy += 1;
-            if (keys['ArrowLeft'] || keys['KeyA']) dx -= 1; if (keys['ArrowRight'] || keys['KeyD']) dx += 1;
+            if (keys['KeyW'] || keys['ArrowUp']) dy -= 1;
+            if (keys['KeyS'] || keys['ArrowDown']) dy += 1;
+            if (keys['KeyA'] || keys['ArrowLeft']) dx -= 1;
+            if (keys['KeyD'] || keys['ArrowRight']) dx += 1;
             if (currentLevel === 4) { if (dx < 0) player.dir = 'left'; else if (dx > 0) player.dir = 'right'; } 
             else { if (dy < 0) player.dir = 'up'; if (dy > 0) player.dir = 'down'; if (dx < 0) player.dir = 'left'; if (dx > 0) player.dir = 'right'; }
             if (dx !== 0 || dy !== 0) { player.state = 'walk'; const len = Math.hypot(dx, dy); player.x += (dx / len) * (player.carrying ? player.speed * 0.7 : player.speed); player.y += (dy / len) * (player.carrying ? player.speed * 0.7 : player.speed); } 
             else { player.state = 'idle'; }
         }
 
-        // Boundary limits (Fix: Applied proper outer bounds to levels 7 and 8)
         if (currentLevel === 4) {
             player.x = Math.max(16, Math.min(256 - 16, player.x)); player.y = Math.max(30, Math.min(192 - 16, player.y));
         } else if (currentLevel === 7) {
@@ -432,6 +652,8 @@
             player.x = Math.max(24, Math.min(256 - 24, player.x)); player.y = Math.max(32, Math.min(192 - 24, player.y));
         }
 
+        updateBoomerang();
+
         if (currentLevel === 1) updateBoss1();
         else if (currentLevel === 2) updateBoss2();
         else if (currentLevel === 3) updateBoss3();
@@ -441,35 +663,118 @@
         else if (currentLevel === 7) updateBoss7();
         else if (currentLevel === 8) updateBoss8();
         else if (currentLevel === 9) updateBoss9();
-        else if (currentLevel === 10) updateBoss10();
+        else if (currentLevel === 10) updateBoss10(); // Pikachu
+        else if (currentLevel === 11) updateBoss11(); // Author
 
         updateProjectiles();
         checkPlayerBossCollision();
     }
 
-    function bossDamage7() {
-        if (boss.invuln > 0) return;
-        boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
-        if (boss.hp <= 0) {
-            player.maxHp++; player.hp = player.maxHp;
-            alert("Level 7: Evil Eagle defeated! Heart Container acquired!\nPrepare for the ultimate test: Hot Head!");
-            currentLevel = 8; initBoss(); updateHearts();
+    function updateBoomerang() {
+        if (!boomerang.active) return;
+        if (!boomerang.returning) {
+            boomerang.x += boomerang.vx; boomerang.y += boomerang.vy;
+            boomerang.timer--;
+            if (boomerang.timer <= 0) boomerang.returning = true;
+            if (boomerang.x < 0 || boomerang.x > 256 || boomerang.y < 0 || boomerang.y > 192) boomerang.returning = true;
+        } else {
+            let dx = player.x - boomerang.x, dy = player.y - boomerang.y;
+            let dist = Math.hypot(dx, dy);
+            if (dist < 12) boomerang.active = false;
+            else { boomerang.x += (dx/dist) * 6; boomerang.y += (dy/dist) * 6; }
+        }
+
+        // Boomerang Boss Hits (4x Damage)
+        if (boss.hp > 0 && boss.invuln <= 0 && boss.state !== 'hidden' && boss.state !== 'shadow_warp' && boss.state !== 'phase_transition') {
+            if (currentLevel === 11 && (!boss.invisTimer || boss.invisTimer <= 0)) {
+                if (Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius + 10) boomerang.returning = true; // Immune
+                if (boss.worms) {
+                    for (let wIndex = boss.worms.length - 1; wIndex >= 0; wIndex--) {
+                        let w = boss.worms[wIndex]; const tail = w.segments[w.numSegments - 1];
+                        if (Math.hypot(boomerang.x - tail.x, boomerang.y - tail.y) < w.segmentRadius + 8) {
+                            boss.worms.splice(wIndex, 1); bgFlash(); boomerang.returning = true; sfx('bossHit'); break;
+                        }
+                    }
+                }
+            } else if (currentLevel === 10) {
+                if (Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius + 10) {
+                    boss.hp -= 4; boss.invuln = 20; bgFlash(); updateBossUI(); sfx('bossHit'); boomerang.returning = true;
+                    if (Math.random() < 0.4) playQuote(10, 'hit');
+                    if (boss.hp <= 0) { levelComplete("Pikachu fainted!\nEntering Final Level...", 11); }
+                }
+            } else if (currentLevel === 9) {
+                if (boss.shadowPhase === 1 && Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius + 10) { bossDamage9(4); boomerang.returning = true; }
+                if (boss.shadowPhase === 2 && Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius) { boomerang.returning = true; }
+                if (boss.shadowPhase === 5 && Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius + 5) { bossDamage9(4); boomerang.returning = true; }
+                if (boss.shadowPhase === 6 && boss.eyeOpen && Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius) { bossDamage9(4); boomerang.returning = true; }
+            } else if (currentLevel === 8 && boss.state === 'jump') {
+                // Rod only
+            } else if (currentLevel === 7) {
+                if (Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius + 15) { bossDamage7(4); boomerang.returning = true; }
+            } else if (currentLevel === 6) {
+                // Bomb only
+            } else {
+                if (currentLevel === 1) {
+                    for (let i = 0; i < boss.numSegments; i++) {
+                        if (Math.hypot(boomerang.x - boss.segments[i].x, boomerang.y - boss.segments[i].y) < boss.segmentRadius + 8) {
+                            if (i === boss.numSegments - 1) {
+                                boss.hp -= 4; boss.invuln = 20; bgFlash(); updateBossUI(); boomerang.returning = true; sfx('bossHit');
+                                if(boss.hp<=0) { levelComplete("Level 1 Cleared!\nEntering Level 2...", 2); }
+                            } else boomerang.returning = true;
+                            break;
+                        }
+                    }
+                } else if (currentLevel === 2) {
+                    if (Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius + 8) {
+                        if(boss.state === 'genie_fly') {
+                            boss.hp -= 4; boss.invuln = 20; bgFlash(); updateBossUI(); boomerang.returning = true; sfx('bossHit');
+                            if(boss.hp<=0) { levelComplete("Level 2 Cleared!\nEntering Level 3...", 3); }
+                        } else boomerang.returning = true;
+                    }
+                } else if (currentLevel === 3) {
+                    if (boss.state === 'split') {
+                        boss.eyes.forEach(eye => {
+                            if (eye.hp>0 && eye.invuln<=0 && Math.hypot(boomerang.x - eye.x, boomerang.y - eye.y) < eye.radius+8) {
+                                eye.hp -= 4; boss.hp -= 4; eye.invuln=20; bgFlash(); updateBossUI(); boomerang.returning = true; sfx('bossHit');
+                                if(boss.eyes[0].hp<=0 && boss.eyes[1].hp<=0) { levelComplete("Level 3 Cleared!\nEntering Level 4...", 4); }
+                            }
+                        });
+                    }
+                } else if (currentLevel === 4) {
+                    if (Math.hypot(boomerang.x - boss.lure.x, boomerang.y - boss.lure.y) < boss.lure.radius + 8) {
+                        boss.hp -= 4; boss.invuln=20; bgFlash(); updateBossUI(); boomerang.returning = true; sfx('bossHit');
+                        if(boss.hp<=0) { levelComplete("Level 4 Cleared!\nEntering Level 5...", 5); }
+                    }
+                } else if (currentLevel === 5) {
+                    if ((boss.state === 'dragged_out' || boss.state === 'exposed') && Math.hypot(boomerang.x - boss.x, boomerang.y - boss.y) < boss.radius+8) {
+                        boss.hp -= 4; boss.invuln=20; bgFlash(); updateBossUI(); boomerang.returning = true; sfx('bossHit');
+                        if(Math.random() < 0.3) playQuote(5, 'hit');
+                        if(boss.hp<=0) { levelComplete("Level 5 Cleared!\nEntering Level 6...", 6); }
+                    }
+                }
+            }
         }
     }
 
-    function bossDamage9() {
+    function bossDamage7(dmg = 1) {
+        if (boss.invuln > 0) return;
+        boss.hp -= dmg; boss.invuln = 20; bgFlash(); updateBossUI(); sfx('bossHit');
+        if (boss.hp <= 0) {
+            levelComplete("Level 7: Evil Eagle Defeated!\nPrepare for Hot Head!", 8);
+        }
+    }
+
+    function bossDamage9(dmg = 1) {
         if (boss.state === 'phase_transition') return;
-        boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
+        boss.hp -= dmg; boss.invuln = 20; bgFlash(); updateBossUI(); sfx('bossHit');
         if (boss.hp <= 0) {
             player.maxHp++; player.hp = player.maxHp; updateHearts();
             boss.shadowPhase++;
             if (boss.shadowPhase > 6) {
-                alert("Congratulations! You defeated the Shadow Nightmares!\nWait... what is that sound?");
-                currentLevel = 10; initBoss(); updateHearts();
+                levelComplete("Congratulations! Shadow Nightmares defeated!\nA wild electric mouse appears...", 10);
             } else {
-                boss.state = 'phase_transition'; // Transform into black ball and move to center
-                boss.targetX = 128; boss.targetY = 96;
-                boss.invuln = 9999;
+                boss.state = 'phase_transition';
+                boss.targetX = 128; boss.targetY = 96; boss.invuln = 9999;
             }
         }
     }
@@ -480,30 +785,21 @@
         boss.timer--;
 
         if (boss.state === 'phase_transition') {
-            let dx = boss.targetX - boss.x, dy = boss.targetY - boss.y;
-            let dist = Math.hypot(dx, dy);
-            if (dist < 2) {
-                boss.x = boss.targetX; boss.y = boss.targetY;
-                setupShadowPhase();
-            } else {
-                boss.x += (dx/dist) * 2; boss.y += (dy/dist) * 2;
-            }
-            return;
+            let dx = boss.targetX - boss.x, dy = boss.targetY - boss.y; let dist = Math.hypot(dx, dy);
+            if (dist < 2) { boss.x = boss.targetX; boss.y = boss.targetY; setupShadowPhase(); } 
+            else { boss.x += (dx/dist) * 2; boss.y += (dy/dist) * 2; } return;
         }
 
-        if (boss.shadowPhase === 1) { // Giant Gel - Jumping movement
+        if (boss.shadowPhase === 1) {
             if (boss.z > 0 || boss.vz !== 0) {
-                boss.z += boss.vz; boss.vz -= 0.2;
-                boss.x += boss.vx; boss.y += boss.vy;
+                boss.z += boss.vz; boss.vz -= 0.2; boss.x += boss.vx; boss.y += boss.vy;
                 if (boss.z <= 0) { boss.z = 0; boss.vz = 0; boss.vx = 0; boss.vy = 0; boss.timer = 45; }
             } else if (boss.timer <= 0) {
                 let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
-                boss.vx = Math.cos(ang) * 1.5; boss.vy = Math.sin(ang) * 1.5;
-                boss.vz = 3.5; // Slow jump
+                boss.vx = Math.cos(ang) * 1.5; boss.vy = Math.sin(ang) * 1.5; boss.vz = 3.5;
             }
-            if (boss.x < 32 || boss.x > 224) boss.vx *= -1;
-            if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
-        } else if (boss.shadowPhase === 2) { // Agahnim - No more teleports, turns into black ball
+            if (boss.x < 32 || boss.x > 224) boss.vx *= -1; if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
+        } else if (boss.shadowPhase === 2) {
             if (boss.state === 'agahnim_prep') {
                 if (boss.timer <= 0) {
                     let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
@@ -511,104 +807,110 @@
                     boss.state = 'agahnim_wait'; 
                 }
             } else if (boss.state === 'agahnim_wait') {
-                let hasFireball = projectiles.some(p => p.type === 'agahnim_fire' || p.type === 'agahnim_fire_reflected');
-                if (!hasFireball) {
-                    boss.state = 'shadow_warp'; 
-                    boss.targetX = 40 + Math.random() * 176; 
-                    boss.targetY = 40 + Math.random() * 100;
+                if (!projectiles.some(p => p.type === 'agahnim_fire' || p.type === 'agahnim_fire_reflected')) {
+                    boss.state = 'shadow_warp'; boss.targetX = 40 + Math.random() * 176; boss.targetY = 40 + Math.random() * 100;
                 }
             } else if (boss.state === 'shadow_warp') {
-                let dx = boss.targetX - boss.x, dy = boss.targetY - boss.y;
-                let dist = Math.hypot(dx, dy);
-                if (dist < 2) {
-                    boss.x = boss.targetX; boss.y = boss.targetY;
-                    boss.state = 'agahnim_prep'; boss.timer = 60;
-                } else {
-                    boss.x += (dx/dist) * 2; boss.y += (dy/dist) * 2;
-                }
+                let dx = boss.targetX - boss.x, dy = boss.targetY - boss.y; let dist = Math.hypot(dx, dy);
+                if (dist < 2) { boss.x = boss.targetX; boss.y = boss.targetY; boss.state = 'agahnim_prep'; boss.timer = 60; } 
+                else { boss.x += (dx/dist) * 2; boss.y += (dy/dist) * 2; }
             }
-        } else if (boss.shadowPhase === 3) { // Moldorm Shadow
-            if (Math.random() < 0.02) boss.turnDir *= -1; 
-            boss.angle += boss.turnSpeed * boss.turnDir;
-            let headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed;
-            let headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed;
+        } else if (boss.shadowPhase === 3) {
+            if (Math.random() < 0.02) boss.turnDir *= -1; boss.angle += boss.turnSpeed * boss.turnDir;
+            let headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed; let headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed;
             if (headX < 24 || headX > 256 - 24) { boss.angle = Math.PI - boss.angle; headX = boss.segments[0].x + Math.cos(boss.angle) * boss.speed; }
             if (headY < 32 || headY > 192 - 24) { boss.angle = -boss.angle; headY = boss.segments[0].y + Math.sin(boss.angle) * boss.speed; }
-            boss.segments[0].x = headX; boss.segments[0].y = headY;
-            boss.history.unshift({x: headX, y: headY});
+            boss.segments[0].x = headX; boss.segments[0].y = headY; boss.history.unshift({x: headX, y: headY});
             if (boss.history.length > boss.numSegments * 8) boss.history.pop();
-            for (let i = 1; i < boss.numSegments; i++) {
-                let histIndex = i * 6; 
-                if (histIndex < boss.history.length) {
-                    boss.segments[i].x = boss.history[histIndex].x; boss.segments[i].y = boss.history[histIndex].y;
-                }
-            }
-        } else if (boss.shadowPhase === 4) { // Ganon
+            for (let i = 1; i < boss.numSegments; i++) { let histIndex = i * 6; if (histIndex < boss.history.length) { boss.segments[i].x = boss.history[histIndex].x; boss.segments[i].y = boss.history[histIndex].y; } }
+        } else if (boss.shadowPhase === 4) {
             if (boss.state === 'ganon_idle') {
                 if (boss.timer <= 0) { boss.state = 'ganon_move'; boss.timer = 60; }
             } else {
                 boss.x += Math.sin(Date.now()/500)*1.5; boss.y += Math.cos(Date.now()/400)*1;
-                
-                // When not in cooldown, spawn firebats every 20 frames
                 if (boss.timer % 20 === 0) {
                     let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                     projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*2.5, vy: Math.sin(ang)*2.5, type: 'firebat', life: 200});
                 }
-                
                 if (boss.timer <= -150 && !boss.trident) {
                     let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                     boss.trident = {x: boss.x, y: boss.y, vx: Math.cos(ang)*4, vy: Math.sin(ang)*4, returning: false, timer: 30};
                 }
                 if (boss.trident) {
                     boss.trident.x += boss.trident.vx; boss.trident.y += boss.trident.vy;
-                    if (!boss.trident.returning) {
-                        boss.trident.timer--; if (boss.trident.timer <= 0) boss.trident.returning = true;
-                    } else {
-                        let dx = boss.x - boss.trident.x, dy = boss.y - boss.trident.y;
-                        let d = Math.hypot(dx, dy);
-                        if (d < 10) { boss.trident = null; boss.state = 'ganon_idle'; boss.timer = 240; } // 4 seconds absolute cooldown (60 FPS * 4)
+                    if (!boss.trident.returning) { boss.trident.timer--; if (boss.trident.timer <= 0) boss.trident.returning = true; } 
+                    else {
+                        let dx = boss.x - boss.trident.x, dy = boss.y - boss.trident.y; let d = Math.hypot(dx, dy);
+                        if (d < 10) { boss.trident = null; boss.state = 'ganon_idle'; boss.timer = 240; } 
                         else { boss.trident.x += (dx/d)*5; boss.trident.y += (dy/d)*5; }
                     }
                 }
             }
-        } else if (boss.shadowPhase === 5) { // Lanmola
-            boss.x += boss.vx; boss.y += boss.vy;
-            if (boss.x < 32 || boss.x > 224) boss.vx *= -1;
-            if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
-        } else if (boss.shadowPhase === 6) { // DethI
-            boss.armAngle += 0.05;
-            boss.x = 128 + Math.sin(Date.now()/600)*50;
-            if (boss.timer <= 0) {
-                boss.eyeOpen = !boss.eyeOpen;
-                boss.timer = boss.eyeOpen ? 60 : 120;
-            }
+        } else if (boss.shadowPhase === 5) {
+            boss.x += boss.vx; boss.y += boss.vy; if (boss.x < 32 || boss.x > 224) boss.vx *= -1; if (boss.y < 32 || boss.y > 160) boss.vy *= -1;
+        } else if (boss.shadowPhase === 6) {
+            boss.armAngle += 0.05; boss.x = 128 + Math.sin(Date.now()/600)*50;
+            if (boss.timer <= 0) { boss.eyeOpen = !boss.eyeOpen; boss.timer = boss.eyeOpen ? 60 : 120; }
         }
     }
 
-    // Level 10 Author
     function updateBoss10() {
         if (boss.hp <= 0) return;
-        boss.timer++;
-        boss.freezeCooldown--;
+        if (boss.invuln > 0) boss.invuln--;
+        boss.timer--;
+
+        if (boss.state === 'pika_idle') {
+            boss.x += Math.sin(Date.now() / 200) * 0.5;
+            if (boss.timer <= 0) {
+                let r = Math.random();
+                if (r < 0.35) { boss.state = 'pika_dash_prep'; boss.timer = 30; }
+                else if (r < 0.65) { boss.state = 'pika_shock'; boss.timer = 45; }
+                else { boss.state = 'pika_tail'; boss.timer = 50; boss.tailAngle = 0; }
+            }
+        } else if (boss.state === 'pika_dash_prep') {
+            boss.x += (Math.random() - 0.5) * 4;
+            if (boss.timer <= 0) {
+                let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
+                boss.vx = Math.cos(ang) * 6; boss.vy = Math.sin(ang) * 6;
+                boss.state = 'pika_dash'; boss.timer = 35; sfx('shoot');
+            }
+        } else if (boss.state === 'pika_dash') {
+            boss.x += boss.vx; boss.y += boss.vy;
+            if (boss.x < 30 || boss.x > 226) boss.vx *= -1;
+            if (boss.y < 40 || boss.y > 180) boss.vy *= -1;
+            if (boss.timer <= 0) { boss.state = 'pika_idle'; boss.timer = 40; }
+        } else if (boss.state === 'pika_shock') {
+            if (boss.timer % 15 === 0) {
+                let ang = Math.atan2(player.y - boss.y, player.x - boss.x) + (Math.random() - 0.5) * 0.5;
+                projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*4, vy: Math.sin(ang)*4, type: 'electric', life: 100});
+                sfx('shoot');
+            }
+            if (boss.timer <= 0) { boss.state = 'pika_idle'; boss.timer = 50; }
+        } else if (boss.state === 'pika_tail') {
+            boss.tailAngle += 0.4;
+            if (boss.timer <= 0) { boss.state = 'pika_idle'; boss.timer = 50; boss.tailAngle = 0; }
+        }
+
+        boss.x = Math.max(30, Math.min(226, boss.x));
+        boss.y = Math.max(40, Math.min(180, boss.y));
+        updateBossUI();
+    }
+
+    function updateBoss11() {
+        if (boss.hp <= 0) return;
+        boss.timer++; boss.freezeCooldown--;
 
         if (boss.invisCooldown !== undefined) {
             boss.invisCooldown--;
-            if (boss.invisCooldown <= 0) {
-                boss.invisTimer = 300;
-                boss.invisCooldown = 1000;
-            }
+            if (boss.invisCooldown <= 0) { boss.invisTimer = 300; boss.invisCooldown = 1000; }
             if (boss.invisTimer > 0) boss.invisTimer--;
         }
 
-        boss.x += Math.sin(boss.timer * 0.05) * 1.5;
-        boss.y += Math.cos(boss.timer * 0.03) * 1.0;
-        
-        // Boundary limits
-        boss.x = Math.max(30, Math.min(226, boss.x));
-        boss.y = Math.max(40, Math.min(180, boss.y));
+        boss.x += Math.sin(boss.timer * 0.05) * 1.5; boss.y += Math.cos(boss.timer * 0.03) * 1.0;
+        boss.x = Math.max(30, Math.min(226, boss.x)); boss.y = Math.max(40, Math.min(180, boss.y));
 
         if (boss.hp > 5) {
-            if (boss.timer % 50 === 0) { // Fireballs slowed to 1 per 50 frames
+            if (boss.timer % 50 === 0) {
                 let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                 projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*4.5, vy: Math.sin(ang)*4.5, type: 'author_fire', life: 100});
             }
@@ -620,14 +922,11 @@
         }
 
         if (boss.freezeCooldown <= 0) {
-            player.freezeTimer = 50; // Freeze player for 50 frames
-            boss.freezeCooldown = 500; // Freeze again after 500 frames
-            // Freeze glitch effect
+            player.freezeTimer = 50; boss.freezeCooldown = 500;
             document.getElementById('gameCanvas').style.backgroundColor = "#00ffff";
             setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100);
         }
 
-        // 0.05% chance to spawn small worm (max 3)
         if (Math.random() < 0.0005 && boss.worms && boss.worms.length < 3) {
             let worm = {
                 x: 40 + Math.random() * 176, y: 40 + Math.random() * 112,
@@ -638,30 +937,38 @@
             boss.worms.push(worm);
         }
         
-        // Update worms
         if (boss.worms) {
             boss.worms.forEach(w => {
-                if (Math.random() < 0.05) w.turnDir *= -1;
-                w.angle += w.turnSpeed * w.turnDir;
-                let headX = w.segments[0].x + Math.cos(w.angle) * w.speed;
-                let headY = w.segments[0].y + Math.sin(w.angle) * w.speed;
+                if (Math.random() < 0.05) w.turnDir *= -1; w.angle += w.turnSpeed * w.turnDir;
+                let headX = w.segments[0].x + Math.cos(w.angle) * w.speed; let headY = w.segments[0].y + Math.sin(w.angle) * w.speed;
                 if (headX < 24 || headX > 256 - 24) { w.angle = Math.PI - w.angle; headX = w.segments[0].x + Math.cos(w.angle) * w.speed; }
                 if (headY < 32 || headY > 192 - 24) { w.angle = -w.angle; headY = w.segments[0].y + Math.sin(w.angle) * w.speed; }
-                w.segments[0].x = headX; w.segments[0].y = headY;
-                w.history.unshift({x: headX, y: headY});
+                w.segments[0].x = headX; w.segments[0].y = headY; w.history.unshift({x: headX, y: headY});
                 if (w.history.length > w.numSegments * 6) w.history.pop();
-                for (let i = 1; i < w.numSegments; i++) {
-                    let histIndex = i * 5; 
-                    if (histIndex < w.history.length) {
-                        w.segments[i].x = w.history[histIndex].x; w.segments[i].y = w.history[histIndex].y;
-                    }
-                }
+                for (let i = 1; i < w.numSegments; i++) { let histIndex = i * 5; if (histIndex < w.history.length) { w.segments[i].x = w.history[histIndex].x; w.segments[i].y = w.history[histIndex].y; } }
             });
         }
+
+        boss.tauntTimer--;
+        if (boss.tauntTimer <= 0) {
+            const phrases = ["stop fighting!!!", "just die already!", "WHY ARE YOU STILL HERE?", "I AM THE CREATOR!", "ERROR: PLAYER WON'T DIE"];
+            boss.taunts.push({
+                text: phrases[Math.floor(Math.random() * phrases.length)],
+                x: Math.random() * 200 + 28,
+                y: Math.random() * 150 + 20,
+                life: 80,
+                color: Math.random() > 0.5 ? '#ff0000' : '#0000ff'
+            });
+            boss.tauntTimer = 30 + Math.random() * 40;
+        }
+        if (boss.taunts) {
+            boss.taunts.forEach(t => t.life--);
+            boss.taunts = boss.taunts.filter(t => t.life > 0);
+        }
+
         updateBossUI();
     }
 
-    // Reuse previous levels 1-8 logic 
     function updateBoss1() {
         if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--;
         if (Math.random() < 0.02) boss.turnDir *= -1; boss.angle += boss.turnSpeed * boss.turnDir;
@@ -724,34 +1031,26 @@
         if (boss.hp <= 0) return; if (boss.invuln > 0) boss.invuln--; boss.timer--;
         if (boss.state === 'lava_hide') { 
             if (boss.timer <= 0) { 
-                boss.x = 64 + Math.random() * 128; 
-                boss.y = 64 + Math.random() * 64; 
-                boss.initialY = boss.y; // Remember jump point, ensure strict return to lava
-                boss.state = 'jump'; 
-                boss.timer = 60; 
-                boss.vy = -4; // Jump initial velocity
+                boss.x = 64 + Math.random() * 128; boss.y = 64 + Math.random() * 64; boss.initialY = boss.y;
+                boss.state = 'jump'; boss.timer = 60; boss.vy = -4; 
             }
         } else if (boss.state === 'jump') { 
-            boss.y += boss.vy; 
-            boss.vy += 0.1; // Reduce gravity, extend air time
-            if (boss.vy >= -0.05 && boss.vy <= 0.05) { // Spit fireballs at the apex of jump
+            boss.y += boss.vy; boss.vy += 0.1;
+            if (boss.vy >= -0.05 && boss.vy <= 0.05) {
                 for(let i=0; i<4; i++) { 
                     let ang = i * (Math.PI/2) + (Date.now()/100); 
                     projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*2, vy: Math.sin(ang)*2, type: 'fire'}); 
                 } 
             } 
             if (boss.y > boss.initialY && boss.vy > 0) { 
-                boss.y = boss.initialY; // Strictly return to initial lava position
-                boss.state = 'lava_hide'; 
-                boss.timer = 90; 
+                boss.y = boss.initialY; boss.state = 'lava_hide'; boss.timer = 90; 
             } 
         }
     }
 
     function updateProjectiles() {
         for (let i = projectiles.length - 1; i >= 0; i--) {
-            let p = projectiles[i];
-            if (!p) break; // Fix for undefined array elements after level reset
+            let p = projectiles[i]; if (!p) break;
             p.x += p.vx; p.y += p.vy;
             if (p.life !== undefined) { p.life--; if (p.life <= 0) { projectiles.splice(i, 1); continue; } }
             if (p.y > 200 || p.x < -20 || p.x > 280 || p.y < -20) { projectiles.splice(i, 1); continue; }
@@ -762,39 +1061,24 @@
                 }
             }
 
-            // Level 8 specific collision (Magic Rod damage only)
             if (currentLevel === 8 && boss.invuln <= 0 && boss.state === 'jump') {
                 if (p.type === 'rod_fire' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 10) {
-                    boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI();
-                    projectiles.splice(i, 1);
-                    if (boss.hp <= 0) {
-                        player.maxHp++; player.hp = player.maxHp;
-                        alert("Level 8 cleared! Prepare for the ultimate hidden stage: Shadow Nightmares!");
-                        currentLevel = 9; initBoss(); updateHearts();
-                        break;
-                    }
+                    boss.hp--; boss.invuln = 20; bgFlash(); updateBossUI(); projectiles.splice(i, 1); sfx('bossHit');
+                    if (boss.hp <= 0) { levelComplete("Level 8 cleared! Prepare for Shadow Nightmares!", 9); break; }
                     continue;
                 }
             }
 
-            // Level 10 Author specific collision (Reflect fireball)
-            if (currentLevel === 10 && (!boss.invisTimer || boss.invisTimer <= 0)) {
+            if (currentLevel === 11 && (!boss.invisTimer || boss.invisTimer <= 0)) {
                 if (p.type === 'author_fire_reflected' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) {
-                    boss.hp--; player.hasHit = true; bgFlash(); updateBossUI();
-                    boss.x = 40 + Math.random() * 176;
-                    boss.y = 40 + Math.random() * 112;
+                    boss.hp--; player.hasHit = true; bgFlash(); updateBossUI(); sfx('bossHit');
+                    boss.x = 40 + Math.random() * 176; boss.y = 40 + Math.random() * 112;
                     projectiles.splice(i, 1);
-                    if (boss.hp <= 0) {
-                        player.maxHp++; player.hp = player.maxHp;
-                        alert("Unbelievable! You defeated the Creator of the world. Game completely cleared!");
-                        currentLevel = 1; initBoss(); updateHearts();
-                        break;
-                    }
+                    if (boss.hp <= 0) { levelComplete("Unbelievable! You defeated the Creator. Game Clear!", 1); break; }
                     continue;
                 }
             }
 
-            // Level 9 specific collision (Projectiles hit Boss)
             if (currentLevel === 9 && boss.state !== 'phase_transition') {
                 if (boss.shadowPhase === 1 && p.type === 'powder' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius + 10) { bossDamage9(); projectiles.splice(i, 1); continue; }
                 if (boss.shadowPhase === 2 && p.type === 'agahnim_fire_reflected' && Math.hypot(p.x - boss.x, p.y - boss.y) < boss.radius) { bossDamage9(); projectiles.splice(i, 1); continue; }
@@ -810,47 +1094,30 @@
         if (player.dir === 'up') sy -= 18; else if (player.dir === 'down') sy += 18; else if (player.dir === 'left') sx -= 18; else if (player.dir === 'right') sx += 18;
         const hitRadius = 20;
 
-        if (currentLevel === 10) {
-            // Level 10 Author hit logic
-            if (boss.invisTimer <= 0) { // Invincible while invisible
-                // Reflect fireball (Main damage when HP > 5)
+        if (currentLevel === 11) {
+            if (boss.invisTimer <= 0) {
                 projectiles.forEach(p => {
                     if (p.type === 'author_fire' && Math.hypot(sx - p.x, sy - p.y) < 25) {
-                        p.type = 'author_fire_reflected';
+                        p.type = 'author_fire_reflected'; sfx('shoot');
                         let ang = Math.atan2(boss.y - p.y, boss.x - p.x);
-                        p.vx = Math.cos(ang)*6; p.vy = Math.sin(ang)*6;
-                        player.hasHit = true;
+                        p.vx = Math.cos(ang)*6; p.vy = Math.sin(ang)*6; player.hasHit = true;
                     }
                 });
 
-                // When HP <= 5, Author goes berserk shooting arrows, vulnerable to sword again
                 if (boss.hp <= 5 && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) {
-                    boss.hp--; player.hasHit = true; bgFlash(); updateBossUI();
-                    // Teleport
-                    boss.x = 40 + Math.random() * 176;
-                    boss.y = 40 + Math.random() * 112;
-                    if (boss.hp <= 0) {
-                        player.maxHp++; player.hp = player.maxHp;
-                        alert("Unbelievable! You defeated the Creator of the world. Game completely cleared!");
-                        currentLevel = 1; initBoss(); updateHearts();
-                        return; // Prevent subsequent logic errors
-                    }
+                    boss.hp--; player.hasHit = true; bgFlash(); updateBossUI(); sfx('bossHit');
+                    boss.x = 40 + Math.random() * 176; boss.y = 40 + Math.random() * 112;
+                    if (boss.hp <= 0) { levelComplete("Unbelievable! You defeated the Creator. Game Clear!", 1); return; }
                 }
             }
-
-            // Slash worms (can be hit anytime)
-            if (boss.worms) { // Add safety check
+            if (boss.worms) {
                 for (let wIndex = boss.worms.length - 1; wIndex >= 0; wIndex--) {
-                    let w = boss.worms[wIndex];
-                    const tail = w.segments[w.numSegments - 1];
+                    let w = boss.worms[wIndex]; const tail = w.segments[w.numSegments - 1];
                     if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + w.segmentRadius) {
-                        boss.worms.splice(wIndex, 1);
-                        player.hasHit = true; bgFlash();
+                        boss.worms.splice(wIndex, 1); player.hasHit = true; bgFlash(); sfx('bossHit');
                     } else {
                         for (let i = 0; i < w.numSegments - 1; i++) {
-                            if (Math.hypot(sx - w.segments[i].x, sy - w.segments[i].y) < hitRadius + w.segmentRadius) {
-                                player.hasHit = true; triggerPlayerKnockback(w.segments[i]); break;
-                            }
+                            if (Math.hypot(sx - w.segments[i].x, sy - w.segments[i].y) < hitRadius + w.segmentRadius) { player.hasHit = true; triggerPlayerKnockback(w.segments[i]); break; }
                         }
                     }
                 }
@@ -858,15 +1125,20 @@
             return;
         }
 
+        if (currentLevel === 10) {
+            if (boss.invuln <= 0 && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) {
+                boss.hp--; player.hasHit = true; bgFlash(); updateBossUI(); sfx('bossHit'); boss.invuln = 20;
+                if (Math.random() < 0.4) playQuote(10, 'hit');
+                if (boss.hp <= 0) { levelComplete("Pikachu fainted!\nEntering Final Level...", 11); return; }
+            }
+            return;
+        }
+
         if (currentLevel === 9) {
             if (boss.shadowPhase === 2) {
-                // Reflect fireball
                 projectiles.forEach(p => {
                     if (p.type === 'agahnim_fire' && Math.hypot(sx - p.x, sy - p.y) < 25) {
-                        p.type = 'agahnim_fire_reflected';
-                        let ang = Math.atan2(boss.y - p.y, boss.x - p.x);
-                        p.vx = Math.cos(ang)*4; p.vy = Math.sin(ang)*4;
-                        player.hasHit = true;
+                        p.type = 'agahnim_fire_reflected'; let ang = Math.atan2(boss.y - p.y, boss.x - p.x); p.vx = Math.cos(ang)*4; p.vy = Math.sin(ang)*4; player.hasHit = true; sfx('shoot');
                     }
                 });
             } else if (boss.shadowPhase === 3) {
@@ -877,19 +1149,18 @@
             return;
         }
 
-        // Old Level 1-8 logic
         if (currentLevel === 1) {
             const tail = boss.segments[boss.numSegments - 1];
-            if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + boss.segmentRadius) { boss.hp--; boss.invuln = 0; boss.speed = boss.baseSpeed * 2.5; player.hasHit = true; bgFlash(); setTimeout(() => { boss.speed = boss.baseSpeed; }, 2000); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 1 cleared!\nEntering Level 2..."); currentLevel = 2; initBoss(); updateHearts(); return; } }
+            if (Math.hypot(sx - tail.x, sy - tail.y) < hitRadius + boss.segmentRadius) { boss.hp--; boss.invuln = 0; boss.speed = boss.baseSpeed * 2.5; player.hasHit = true; bgFlash(); sfx('bossHit'); setTimeout(() => { boss.speed = boss.baseSpeed; }, 2000); if (boss.hp <= 0) { levelComplete("Level 1 Cleared!\nEntering Level 2...", 2); return; } }
             for (let i = 0; i < boss.numSegments - 1; i++) { if (Math.hypot(sx - boss.segments[i].x, sy - boss.segments[i].y) < hitRadius + boss.segmentRadius) { player.hasHit = true; triggerPlayerKnockback(boss.segments[i]); break; } }
         } else if (currentLevel === 2) {
-            if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; if (boss.state === 'jar_move' || boss.state === 'jar_pop') { boss.state = 'jar_stunned'; boss.timer = 180; } else if (boss.state === 'genie_fly') { boss.hp--; boss.invuln = 0; boss.x = 40 + Math.random() * 176; boss.y = 48 + Math.random() * 104; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 2 cleared!\nEntering Level 3..."); currentLevel = 3; initBoss(); updateHearts(); return; } } else if (boss.state === 'jar_stunned') { triggerPlayerKnockback(boss); } }
+            if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; if (boss.state === 'jar_move' || boss.state === 'jar_pop') { boss.state = 'jar_stunned'; boss.timer = 180; } else if (boss.state === 'genie_fly') { boss.hp--; boss.invuln = 0; boss.x = 40 + Math.random() * 176; boss.y = 48 + Math.random() * 104; bgFlash(); sfx('bossHit'); if(Math.random() < 0.3) playQuote(2, 'hit'); if (boss.hp <= 0) { levelComplete("Level 2 Cleared!\nEntering Level 3...", 3); return; } } else if (boss.state === 'jar_stunned') { triggerPlayerKnockback(boss); } }
         } else if (currentLevel === 3) {
-            if (boss.state === 'combined') { if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(sx - eye.x, sy - eye.y) < hitRadius + eye.radius) { eye.hp--; boss.hp--; updateHearts(); eye.invuln = 0; player.hasHit = true; bgFlash(); let angle = Math.atan2(eye.y - player.y, eye.x - player.x); eye.x += Math.cos(angle) * 15; eye.y += Math.sin(angle) * 15; if (boss.eyes[0].hp <= 0 && boss.eyes[1].hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 3 cleared! Entering Level 4..."); currentLevel = 4; initBoss(); updateHearts(); return; } } }); }
+            if (boss.state === 'combined') { if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(sx - eye.x, sy - eye.y) < hitRadius + eye.radius) { eye.hp--; boss.hp--; updateHearts(); eye.invuln = 0; player.hasHit = true; bgFlash(); sfx('bossHit'); let angle = Math.atan2(eye.y - player.y, eye.x - player.x); eye.x += Math.cos(angle) * 15; eye.y += Math.sin(angle) * 15; if (boss.eyes[0].hp <= 0 && boss.eyes[1].hp <= 0) { levelComplete("Level 3 Cleared! Entering Level 4...", 4); return; } } }); }
         } else if (currentLevel === 4) {
-            if (Math.hypot(sx - boss.lure.x, sy - boss.lure.y) < hitRadius + boss.lure.radius) { boss.hp--; boss.invuln = 0; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 4 cleared! Entering Level 5..."); currentLevel = 5; initBoss(); updateHearts(); return; } } else { for (let i = boss.fairies.length - 1; i >= 0; i--) { if (Math.hypot(sx - boss.fairies[i].x, sy - boss.fairies[i].y) < hitRadius + 6) { boss.fairies.splice(i, 1); player.hasHit = true; break; } } if (!player.hasHit && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } }
+            if (Math.hypot(sx - boss.lure.x, sy - boss.lure.y) < hitRadius + boss.lure.radius) { boss.hp--; boss.invuln = 0; player.hasHit = true; bgFlash(); sfx('bossHit'); if (boss.hp <= 0) { levelComplete("Level 4 Cleared! Entering Level 5...", 5); return; } } else { for (let i = boss.fairies.length - 1; i >= 0; i--) { if (Math.hypot(sx - boss.fairies[i].x, sy - boss.fairies[i].y) < hitRadius + 6) { boss.fairies.splice(i, 1); player.hasHit = true; sfx('bossHit'); break; } } if (!player.hasHit && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { player.hasHit = true; triggerPlayerKnockback(boss); } }
         } else if (currentLevel === 5) {
-            if ((boss.state === 'dragged_out' || boss.state === 'exposed') && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { boss.hp--; boss.invuln = 20; player.hasHit = true; bgFlash(); if (boss.hp <= 0) { player.maxHp++; player.hp = player.maxHp; alert("Level 5 cleared! Entering Level 6..."); currentLevel = 6; initBoss(); updateHearts(); return; } }
+            if ((boss.state === 'dragged_out' || boss.state === 'exposed') && Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { boss.hp--; boss.invuln = 20; player.hasHit = true; bgFlash(); sfx('bossHit'); if(Math.random() < 0.3) playQuote(5, 'hit'); if (boss.hp <= 0) { levelComplete("Level 5 Cleared! Entering Level 6...", 6); return; } }
         } else if (currentLevel === 7) {
             if (Math.hypot(sx - boss.x, sy - boss.y) < hitRadius + boss.radius) { bossDamage7(); player.hasHit = true; }
         }
@@ -899,34 +1170,29 @@
         if (player.invuln > 0 || player.state === 'hurt') return;
         let hit = false; let damageSource = null;
 
-        if (currentLevel === 10) {
+        if (currentLevel === 11) {
             if ((!boss.invisTimer || boss.invisTimer <= 0) && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { 
-                hit = true; damageSource = boss; 
-                player.hp -= 1; // Deduct 1 extra heart (total 2 hearts)
+                hit = true; damageSource = boss; player.hp -= 1;
             }
-            // Hit small worm
-            if (boss.worms) { // Safety check
+            if (boss.worms) {
                 boss.worms.forEach(w => {
                     if (player.z < 8) {
-                        for (let i = 0; i < w.numSegments; i++) {
-                            if (Math.hypot(player.x - w.segments[i].x, player.y - w.segments[i].y) < player.radius + w.segmentRadius) {
-                                hit = true; damageSource = w.segments[i]; break;
-                            }
-                        }
+                        for (let i = 0; i < w.numSegments; i++) { if (Math.hypot(player.x - w.segments[i].x, player.y - w.segments[i].y) < player.radius + w.segmentRadius) { hit = true; damageSource = w.segments[i]; break; } }
                     }
                 });
             }
+        } else if (currentLevel === 10) {
+            if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; }
+            if (boss.state === 'pika_tail' && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + 35 && player.z < 15) { hit = true; damageSource = boss; }
         } else if (currentLevel === 9) {
             if (boss.state === 'shadow_warp' || boss.state === 'phase_transition') {
-                // Black hole state deals no damage, also invincible
             } else if (boss.shadowPhase === 1 || boss.shadowPhase === 2 || boss.shadowPhase === 5) {
                 if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && Math.abs(player.z - (boss.z||0)) < 15) { hit = true; damageSource = boss; }
             } else if (boss.shadowPhase === 3) {
                 if (player.z < 8) { for (let i = 0; i < boss.numSegments; i++) { if (Math.hypot(player.x - boss.segments[i].x, player.y - boss.segments[i].y) < player.radius + boss.segmentRadius) { hit = true; damageSource = boss.segments[i]; break; } } }
             } else if (boss.shadowPhase === 4) {
                 if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) {
-                    if (player.state === 'dash') { bossDamage9(); triggerPlayerKnockback(boss); player.hasHit = true; } 
-                    else if (player.state !== 'dash') { hit = true; damageSource = boss; }
+                    if (player.state === 'dash') { bossDamage9(); triggerPlayerKnockback(boss); player.hasHit = true; } else if (player.state !== 'dash') { hit = true; damageSource = boss; }
                 }
                 if (boss.trident && Math.hypot(player.x - boss.trident.x, player.y - boss.trident.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = boss.trident; }
             } else if (boss.shadowPhase === 6) {
@@ -935,18 +1201,15 @@
                 let arm2x = boss.x + Math.cos(boss.armAngle + Math.PI)*45, arm2y = boss.y + Math.sin(boss.armAngle + Math.PI)*45;
                 if (Math.hypot(player.x - arm1x, player.y - arm1y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = {x:arm1x, y:arm1y}; }
                 if (Math.hypot(player.x - arm2x, player.y - arm2y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = {x:arm2x, y:arm2y}; }
-                
-                // 6th phase eye hit by hookshot
                 if (boss.eyeOpen && hookshot.active && !hookshot.returning && Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius) { bossDamage9(); hookshot.returning = true; }
             }
         } else {
-            // Old Level 1-8 logic
             if (currentLevel === 1) { if (player.z < 8) { for (let i = 0; i < boss.numSegments; i++) { const seg = boss.segments[i]; if (Math.hypot(player.x - seg.x, player.y - seg.y) < player.radius + boss.segmentRadius) { hit = true; damageSource = seg; break; } } } } 
             else if (currentLevel === 2) { if (boss.state !== 'carried' && boss.state !== 'thrown') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && boss.state !== 'jar_stunned') { hit = true; damageSource = boss; } } } 
-            else if (currentLevel === 3) { if (boss.state === 'combined') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius * 1.2) { if (player.state === 'dash') { boss.ramHp--; boss.hp--; updateHearts(); triggerPlayerKnockback(boss); document.getElementById('gameCanvas').style.backgroundColor = "#ffffcc"; setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100); if (boss.ramHp <= 0) { boss.state = 'split'; boss.eyes = [ { x: boss.x - 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: -1.5, vy: -1.0, invuln: 0 }, { x: boss.x + 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: 1.5, vy: 1.0, invuln: 0 } ]; } } } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(player.x - eye.x, player.y - eye.y) < player.radius + eye.radius) { hit = true; damageSource = eye; } }); } } 
+            else if (currentLevel === 3) { if (boss.state === 'combined') { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius * 1.2) { if (player.state === 'dash') { boss.ramHp--; boss.hp--; updateHearts(); triggerPlayerKnockback(boss); document.getElementById('gameCanvas').style.backgroundColor = "#ffffcc"; setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = "#c0d8b0"; }, 100); sfx('bossHit'); if (boss.ramHp <= 0) { boss.state = 'split'; boss.eyes = [ { x: boss.x - 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: -1.5, vy: -1.0, invuln: 0 }, { x: boss.x + 20, y: boss.y, radius: 14, hp: 4, maxHp: 4, vx: 1.5, vy: 1.0, invuln: 0 } ]; } } } } else if (boss.state === 'split') { boss.eyes.forEach(eye => { if (eye.hp > 0 && Math.hypot(player.x - eye.x, player.y - eye.y) < player.radius + eye.radius) { hit = true; damageSource = eye; } }); } } 
             else if (currentLevel === 4) { if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius - 4) { hit = true; damageSource = boss; } for (let i = 0; i < boss.fairies.length; i++) { if (Math.hypot(player.x - boss.fairies[i].x, player.y - boss.fairies[i].y) < player.radius + 6) { hit = true; damageSource = boss.fairies[i]; break; } } } 
             else if (currentLevel === 5) { for (let i = 1; i <= 4; i++) { let tx = 128 + Math.cos(boss.tailAngle) * (i * 15); let ty = 96 + Math.sin(boss.tailAngle) * (i * 15); if (Math.hypot(player.x - tx, player.y - ty) < player.radius + 8) { hit = true; damageSource = {x: tx, y: ty}; break; } } } 
-            else if (currentLevel === 6) { for (let i = boss.tiles.length - 1; i >= 0; i--) { let t = boss.tiles[i]; if ((t.state === 'flying' || t.state === 'lifting') && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = t; boss.tiles.splice(i, 1); break; } } if (!hit && player.z === 0) { for (let h of boss.holes) { if ((h.state === 'open' || h.state === 'shrinking') && Math.hypot(player.x - h.x, player.y - h.y) < Math.max(0, h.radius - 4)) { player.hp--; updateHearts(); player.x = 128; player.y = 160; player.invuln = 60; if (player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); } return; } } } } 
+            else if (currentLevel === 6) { for (let i = boss.tiles.length - 1; i >= 0; i--) { let t = boss.tiles[i]; if ((t.state === 'flying' || t.state === 'lifting') && Math.hypot(player.x - t.x, player.y - t.y) < player.radius + 10 && player.z < 15) { hit = true; damageSource = t; boss.tiles.splice(i, 1); break; } } if (!hit && player.z === 0) { for (let h of boss.holes) { if ((h.state === 'open' || h.state === 'shrinking') && Math.hypot(player.x - h.x, player.y - h.y) < Math.max(0, h.radius - 4)) { triggerPlayerKnockback(h); takeDamage(); return; } } } } 
             else if (currentLevel === 7) { 
                 if (Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; } 
                 if (hookshot.active && !hookshot.returning && Math.hypot(hookshot.x - boss.x, hookshot.y - boss.y) < boss.radius) { bossDamage7(); hookshot.returning = true; }
@@ -954,18 +1217,26 @@
             else if (currentLevel === 8) { if (boss.state === 'jump' && Math.hypot(player.x - boss.x, player.y - boss.y) < player.radius + boss.radius && player.z < 15) { hit = true; damageSource = boss; } }
         }
 
-        // Enemy projectile damage check
         projectiles.forEach(p => {
-            if ((p.type === 'agahnim_fire' || p.type === 'firebat' || p.type === 'feather' || p.type === 'fire' || p.type === 'author_fire' || p.type === 'author_arrow' || !p.type) && Math.hypot(player.x - p.x, player.y - p.y) < 8 && player.z < 8) {
-                hit = true; damageSource = p; p.life = 0; // Mark hit fireball/feather for deletion
-                if (p.type === 'author_fire' || p.type === 'author_arrow') player.hp -= 1; // Deduct 1 extra heart (total 2 hearts)
+            if ((p.type === 'agahnim_fire' || p.type === 'firebat' || p.type === 'feather' || p.type === 'fire' || p.type === 'author_fire' || p.type === 'author_arrow' || p.type === 'electric' || !p.type) && Math.hypot(player.x - p.x, player.y - p.y) < 8 && player.z < 8) {
+                hit = true; damageSource = p; p.life = 0; 
+                if (p.type === 'author_fire' || p.type === 'author_arrow') player.hp -= 1;
             }
         });
 
         if (hit && damageSource) {
-            player.hp--; updateHearts(); triggerPlayerKnockback(damageSource); player.invuln = 60; 
-            if (player.hp <= 0) { alert("Game Over..."); player.hp = player.maxHp; player.x = 128; player.y = 160; initBoss(); updateHearts(); }
+            triggerPlayerKnockback(damageSource); takeDamage();
         }
+    }
+
+    function takeDamage(amt = 1) {
+        if (player.invuln > 0) return;
+        let dmg = (difficulty === 'hard') ? amt * 2 : amt;
+        player.hp -= dmg;
+        updateHearts();
+        player.invuln = 60;
+        sfx('hit');
+        if (player.hp <= 0) { triggerGameOver(); }
     }
 
     function triggerPlayerKnockback(sourceObj) {
@@ -978,9 +1249,6 @@
     function bgFlash() { document.getElementById('gameCanvas').style.backgroundColor = "#ffcccc"; setTimeout(() => { document.getElementById('gameCanvas').style.backgroundColor = currentLevel === 4 ? "#2980b9" : "#c0d8b0"; }, 100); }
     function updateBossUI() { bossHpFillEl.style.width = (Math.max(0, boss.hp) / boss.maxHp * 100) + "%"; }
 
-    // ==========================================
-    // Rendering system (Full integer | 0 performance optimization)
-    // ==========================================
     function draw() {
         if (currentLevel === 4) {
             ctx.fillStyle = "#2980b9"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.fillStyle = "#3498db"; ctx.fillRect(0, 0, canvas.width, 30); ctx.fillStyle = "rgba(255,255,255,0.2)"; for(let i=0; i<5; i++) { ctx.fillRect(Math.random()*canvas.width|0, Math.random()*30|0, 40, 2); }
@@ -989,51 +1257,71 @@
         } else if (currentLevel === 8) {
             ctx.fillStyle = "#d35400"; ctx.fillRect(0,0,256,192); ctx.fillStyle = "#e67e22"; ctx.fillRect(10, 10, 236, 172); ctx.fillStyle = "#7f8c8d"; ctx.fillRect(0, 0, 256, 48); ctx.fillRect(0, 144, 256, 48); ctx.fillRect(0, 0, 48, 192); ctx.fillRect(208, 0, 48, 192);
         } else if (currentLevel === 9) {
-            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height); // Nightmare dark background
+            ctx.fillStyle = "#111"; ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.strokeStyle = "#333"; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); } for(let i=0; i<canvas.height; i+=16) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
         } else {
             ctx.fillStyle = "#c0d8b0"; ctx.fillRect(0, 0, canvas.width, canvas.height); ctx.strokeStyle = "#a0c090"; ctx.lineWidth = 1; for(let i=0; i<canvas.width; i+=16) { ctx.beginPath(); ctx.moveTo(i, 0); ctx.lineTo(i, canvas.height); ctx.stroke(); } for(let i=0; i<canvas.height; i+=16) { ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(canvas.width, i); ctx.stroke(); }
             ctx.fillStyle = "#5a5a5a"; ctx.fillRect(0, 0, canvas.width, 16); ctx.fillRect(0, 176, canvas.width, 16); ctx.fillRect(0, 0, 16, canvas.height); ctx.fillRect(240, 0, 16, canvas.height); 
         }
 
-        // Level 6 holes/tiles
         if (currentLevel === 6) {
             ctx.fillStyle = '#000'; boss.holes.forEach(h => { ctx.beginPath(); ctx.arc(h.x|0, h.y|0, h.radius|0, 0, Math.PI*2); ctx.fill(); });
             if (boss.state !== 'hidden') { ctx.save(); ctx.globalAlpha = boss.alpha || 1; ctx.fillStyle = '#a8b898'; ctx.beginPath(); ctx.arc(boss.x|0, boss.y|0, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#000'; ctx.fillRect((boss.x-14)|0, (boss.y-12)|0, 8, 8); ctx.fillRect((boss.x+6)|0, (boss.y-12)|0, 8, 8); ctx.fillRect((boss.x-10)|0, (boss.y+10)|0, 20, 6); ctx.restore(); }
             ctx.fillStyle = '#c0d8b0'; ctx.strokeStyle = '#5a5a5a'; ctx.lineWidth = 2; boss.tiles.forEach(t => { if (t.state !== 'idle') { ctx.save(); ctx.translate(t.x|0, (t.y - t.z)|0); ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fillRect(-8, (-8 + t.z)|0, 16, 16); ctx.fillStyle = '#c0d8b0'; ctx.fillRect(-8, -8, 16, 16); ctx.strokeRect(-8, -8, 16, 16); ctx.restore(); } });
         }
 
-        // Draw Boss
         if (boss.hp > 0 && (boss.invuln === 0 || Math.floor(Date.now() / 50) % 2 === 0)) {
-            if (currentLevel === 10) {
+            if (currentLevel === 11) {
                 if (!boss.invisTimer || boss.invisTimer <= 0) {
                     ctx.save(); ctx.translate(boss.x|0, boss.y|0);
-                    // Author Body
                     ctx.fillStyle = "#111"; ctx.fillRect(-12, -16, 24, 32); 
                     ctx.fillStyle = "#222"; ctx.beginPath(); ctx.arc(0, -18, 10, 0, Math.PI*2); ctx.fill();
-                    // Green code eyes { }
                     ctx.fillStyle = "#0f0"; ctx.font = "12px monospace"; ctx.fillText("{ }", -9, -15);
                     ctx.restore();
                 }
-                
-                // Draw worm army
                 if (boss.worms) {
                     boss.worms.forEach(w => {
                         for (let i = w.numSegments - 1; i >= 0; i--) {
-                            const seg = w.segments[i];
-                            ctx.beginPath(); ctx.arc(seg.x|0, seg.y|0, w.segmentRadius|0, 0, Math.PI * 2);
-                            if (i === 0) ctx.fillStyle = "#d35400";
-                            else if (i === w.numSegments - 1) ctx.fillStyle = "#f1c40f";
-                            else ctx.fillStyle = "#e67e22";
+                            const seg = w.segments[i]; ctx.beginPath(); ctx.arc(seg.x|0, seg.y|0, w.segmentRadius|0, 0, Math.PI * 2);
+                            if (i === 0) ctx.fillStyle = "#d35400"; else if (i === w.numSegments - 1) ctx.fillStyle = "#f1c40f"; else ctx.fillStyle = "#e67e22";
                             ctx.fill(); ctx.lineWidth = 1; ctx.strokeStyle = "#000"; ctx.stroke();
                         }
                     });
                 }
+            } else if (currentLevel === 10) {
+                ctx.save(); ctx.translate(boss.x|0, boss.y|0);
+                
+                // Tail
+                ctx.save();
+                ctx.rotate(boss.tailAngle || 0);
+                ctx.fillStyle = "#f1c40f";
+                ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(15, -5); ctx.lineTo(15, 5); ctx.lineTo(25, -10); ctx.lineTo(20, 10); ctx.lineTo(35, -5); ctx.lineTo(30, 15); ctx.lineTo(10, 10); ctx.fill(); ctx.stroke();
+                ctx.restore();
+
+                // Body
+                ctx.fillStyle = "#f1c40f";
+                ctx.beginPath(); ctx.arc(0, 0, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                // Ears
+                ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-12, -20); ctx.lineTo(-2, -12); ctx.fill(); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(6, -10); ctx.lineTo(12, -20); ctx.lineTo(2, -12); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = "#000";
+                ctx.beginPath(); ctx.moveTo(-9, -15); ctx.lineTo(-12, -20); ctx.lineTo(-7, -16); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(9, -15); ctx.lineTo(12, -20); ctx.lineTo(7, -16); ctx.fill();
+                // Cheeks
+                ctx.fillStyle = "#e74c3c";
+                ctx.beginPath(); ctx.arc(-7, 2, 3, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(7, 2, 3, 0, Math.PI*2); ctx.fill();
+                // Eyes & Mouth
+                ctx.fillStyle = "#000";
+                ctx.fillRect(-5, -4, 2, 3); ctx.fillRect(3, -4, 2, 3);
+                ctx.fillRect(-2, 3, 4, 1);
+                
+                ctx.restore();
+
             } else if (currentLevel === 9) {
                 ctx.save(); ctx.translate(boss.x|0, (boss.y - (boss.z || 0))|0);
                 if (boss.state === 'shadow_warp' || boss.state === 'phase_transition') { 
-                    ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); 
-                    ctx.strokeStyle = "#444"; ctx.lineWidth = 2; ctx.stroke();
+                    ctx.fillStyle = "#000"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); ctx.strokeStyle = "#444"; ctx.lineWidth = 2; ctx.stroke();
                 }
                 else if (boss.shadowPhase === 1) { ctx.fillStyle = "#262"; ctx.beginPath(); ctx.ellipse(0,0,boss.radius|0,(boss.radius*0.8)|0,0,0,Math.PI*2); ctx.fill(); }
                 else if (boss.shadowPhase === 2) { ctx.fillStyle = "#333"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); ctx.fillStyle = "#f00"; ctx.fillRect(-4,-4,8,8); }
@@ -1059,7 +1347,6 @@
             }
         }
 
-        // Draw projectiles
         projectiles.forEach(p => {
             if (p.type === 'powder') { ctx.fillStyle = "#fff"; ctx.fillRect((p.x-5)|0, (p.y-5)|0, 10, 10); }
             else if (p.type === 'rod_fire') { ctx.fillStyle = "#f00"; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5, 0, Math.PI*2); ctx.fill(); }
@@ -1072,14 +1359,13 @@
             else if (p.type === 'author_arrow') { ctx.strokeStyle = '#0f0'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.x|0, p.y|0); ctx.lineTo((p.x - p.vx*0.8)|0, (p.y - p.vy*0.8)|0); ctx.stroke(); ctx.fillStyle = '#000'; ctx.fillRect((p.x-1.5)|0, (p.y-1.5)|0, 3, 3); }
             else if (p.type === 'author_fire') { ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5, 0, Math.PI*2); ctx.fill(); ctx.strokeStyle = '#0f0'; ctx.lineWidth = 1.5; ctx.stroke(); }
             else if (p.type === 'author_fire_reflected') { ctx.fillStyle = '#0f0'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 6, 0, Math.PI*2); ctx.fill(); }
+            else if (p.type === 'electric') { ctx.fillStyle = '#f1c40f'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 5 + Math.random()*2, 0, Math.PI*2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 3, 0, Math.PI*2); ctx.fill(); }
             else { ctx.fillStyle = '#f39c12'; ctx.beginPath(); ctx.arc(p.x|0, p.y|0, 4, 0, Math.PI*2); ctx.fill(); ctx.stroke(); }
         });
 
-        // Draw bombs and explosions
         bombs.forEach(b => {
             if (b.state === 'ticking') {
-                ctx.fillStyle = b.timer % 10 < 5 ? "#000" : "#e74c3c";
-                ctx.beginPath(); ctx.arc(b.x|0, b.y|0, 6, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = b.timer % 10 < 5 ? "#000" : "#e74c3c"; ctx.beginPath(); ctx.arc(b.x|0, b.y|0, 6, 0, Math.PI*2); ctx.fill();
             } else if (b.state === 'exploding') {
                 let r = 24 * ((15 - b.timer) / 15);
                 ctx.fillStyle = 'rgba(231, 76, 60, 0.8)'; ctx.beginPath(); ctx.arc(b.x|0, b.y|0, r|0, 0, Math.PI*2); ctx.fill();
@@ -1087,22 +1373,28 @@
             }
         });
 
-        // Hookshot
+        // 绘制回旋镖 (确保boomerang对象存在)
+        if (boomerang && boomerang.active) {
+            ctx.save();
+            ctx.translate(boomerang.x|0, (boomerang.y - player.z)|0);
+            ctx.rotate(Date.now() / 50);
+            ctx.fillStyle = '#3498db'; 
+            ctx.beginPath(); ctx.moveTo(-6, -6); ctx.lineTo(6, -6); ctx.lineTo(0, 6); ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
+            ctx.restore();
+        }
+
         if (hookshot.active) {
             ctx.strokeStyle = "#8e44ad"; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(player.x|0, (player.y - player.z)|0); ctx.lineTo(hookshot.x|0, hookshot.y|0); ctx.stroke();
             ctx.fillStyle = "#9b59b6"; ctx.fillRect((hookshot.x - 3)|0, (hookshot.y - 3)|0, 6, 6);
         }
 
-        // Player
         if (player.invuln % 4 < 2) {
-            if (player.z > 0 && currentLevel !== 4 && currentLevel !== 9 && currentLevel !== 10) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(player.x|0, player.y|0, 8, 4, 0, 0, Math.PI*2); ctx.fill(); }
+            if (player.z > 0 && currentLevel !== 4 && currentLevel !== 9 && currentLevel !== 10 && currentLevel !== 11) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(player.x|0, player.y|0, 8, 4, 0, 0, Math.PI*2); ctx.fill(); }
             ctx.save(); ctx.translate(player.x|0, (player.y - player.z)|0); 
             
-            if (player.freezeTimer > 0) {
-                ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
-                ctx.fillRect(-10, -12, 20, 16);
-            }
+            if (player.freezeTimer > 0) { ctx.fillStyle = "rgba(0, 255, 255, 0.6)"; ctx.fillRect(-10, -12, 20, 16); }
             
             ctx.fillStyle = "#2ecc71"; ctx.fillRect(-6, -8, 12, 10);
             ctx.fillStyle = "#f1c40f"; ctx.fillRect(-4, -4, 8, 6);
@@ -1110,20 +1402,36 @@
             if (player.state === 'attack') { ctx.fillStyle = "#ecf0f1"; ctx.strokeStyle = "#000"; ctx.lineWidth = 1; let sx = 0, sy = 0, sw = 0, sh = 0; if (player.dir === 'up') { sx = -2; sy = -20; sw = 4; sh = 12; } if (player.dir === 'down') { sx = -2; sy = 8; sw = 4; sh = 12; } if (player.dir === 'left') { sx = -20; sy = -2; sw = 12; sh = 4; } if (player.dir === 'right') { sx = 8; sy = -2; sw = 12; sh = 4; } ctx.fillRect(sx, sy, sw, sh); ctx.strokeRect(sx, sy, sw, sh); ctx.beginPath(); ctx.strokeStyle = "rgba(255,255,255,0.8)"; ctx.lineWidth = 2; if (player.dir === 'up') ctx.arc(0, 0, 16, Math.PI+0.5, Math.PI*2-0.5); if (player.dir === 'down') ctx.arc(0, 0, 16, 0.5, Math.PI-0.5); if (player.dir === 'left') ctx.arc(0, 0, 16, Math.PI/2+0.5, Math.PI*1.5-0.5); if (player.dir === 'right') ctx.arc(0, 0, 16, -Math.PI/2+0.5, Math.PI/2-0.5); ctx.stroke(); } else if (player.state === 'dash') { ctx.fillStyle = 'rgba(255,255,255,0.7)'; ctx.beginPath(); ctx.arc(0, 8, 6, 0, Math.PI*2); ctx.fill(); } else if (player.state !== 'hookshot') { ctx.fillStyle = "#c0392b"; if (currentLevel === 4) { if (player.dir === 'left') ctx.fillRect(-8, -4, 4, 12); if (player.dir === 'right') ctx.fillRect(4, -4, 4, 12); } else { if (player.dir === 'up') ctx.fillRect(-8, -4, 16, 4); if (player.dir === 'down') ctx.fillRect(-8, 4, 16, 4); if (player.dir === 'left') ctx.fillRect(-8, -4, 4, 12); if (player.dir === 'right') ctx.fillRect(4, -4, 4, 12); } }
             ctx.restore();
         }
+
+        // Draw Annoying Level 11 Taunts!
+        if (currentLevel === 11 && boss && boss.taunts && boss.taunts.length > 0) {
+            ctx.save();
+            ctx.font = "bold 14px 'Courier New'";
+            ctx.textAlign = "center";
+            boss.taunts.forEach(t => {
+                ctx.fillStyle = t.color;
+                ctx.globalAlpha = Math.max(0, t.life / 80);
+                let jx = t.x + (Math.random() - 0.5) * 4;
+                let jy = t.y + (Math.random() - 0.5) * 4;
+                ctx.fillText(t.text, jx, jy);
+            });
+            ctx.restore();
+        }
     }
 
     let lastTime = 0;
     function gameLoop(timestamp) { 
         if (timestamp - lastTime >= 1000 / FPS) { 
-            update(); 
-            draw(); 
+            if (gameState === 'playing') {
+                update(); draw(); 
+            } else if (gameState === 'transition') {
+                draw();
+            }
             lastTime = timestamp; 
         } 
         requestAnimationFrame(gameLoop); 
     }
     
-    initBoss(); 
-    updateHearts();
     requestAnimationFrame(gameLoop);
 
 </script>
