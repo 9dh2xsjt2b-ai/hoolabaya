@@ -129,7 +129,7 @@
         </div>
     </div>
     
-    <div id="multiplayer-status">在线玩家: 1</div>
+    <div id="multiplayer-status">Player online: 1</div>
     <div id="quote-box"></div>
     <canvas id="gameCanvas" width="256" height="192"></canvas>
 </div>
@@ -263,7 +263,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         8: { intro: ["CRACKLE-FROOOWSH! You're finished! I will never let you play the Instruments of the Sirens!"], hit: [], death: [] },
         9: { intro: [], hit: [], death: [] },
         10: { intro: ["Pika pika! (Sparks fly as the electric mouse appears!)"], hit: ["Piiiika! (That hurts!)"], death: ["Pika-chuuuuuu... (Faints...)"] },
-        11: { intro: ["You defeated them all? They are just my guards, I'm the master, and you are nobody, prepare yourselves!!!"], hit: [], death: [] }
+        11: { intro: ["You defeated them all? They are just my guards, I'm the master, and you are nothing, prepare yourselves!!!"], hit: [], death: [] }
     };
 
     function playQuote(lvl, type) {
@@ -426,7 +426,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         if (cinematicPhase === 1) {
             if (cinematicTimer === 1) {
                 boss.vx = 0; boss.vy = 0;
-                quoteBox.innerHTML = "<span style='color:#ff0000; font-weight:bold; font-size:16px;'>你想打败创世者？太天真了！</span>";
+                quoteBox.innerHTML = "<span style='color:#ff0000; font-weight:bold; font-size:16px;'>You want to defeat the Creator? Too naive.！</span>";
                 quoteBox.style.display = 'block';
             }
             if (cinematicTimer === 240) {
@@ -435,7 +435,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         }
         else if (cinematicPhase === 2) {
             if (cinematicTimer === 1) {
-                quoteBox.innerHTML = "<span style='color:#ff0000; font-weight:bold; font-size:16px;'>接受代码的制裁吧！DELETE！</span>";
+                quoteBox.innerHTML = "<span style='color:#ff0000; font-weight:bold; font-size:16px;'>Accept the punishment of the code！DELETE！</span>";
                 boss.x = player.x + 20;
                 boss.y = player.y;
             }
@@ -468,11 +468,11 @@ Multiplayer is enabled! All players share Boss damage progress.
                 if (marin.y > player.y + 20) marin.y -= 1;
             }
             if (cinematicTimer === 260) {
-                quoteBox.innerHTML = "<span style='color:#ff9ff3; font-weight:bold;'>Link! Link! Wake up...</span>";
+                quoteBox.innerHTML = "<span style='color:#ff9ff3; font-weight:bold;'>Marin: Link! Link! Wake up...</span>";
                 quoteBox.style.display = 'block';
             }
             if (cinematicTimer === 450) {
-                quoteBox.innerHTML = "<span style='color:#ff9ff3; font-weight:bold;'>The author left, but I have forever lost you...</span>";
+                quoteBox.innerHTML = "<span style='color:#ff9ff3; font-weight:bold;'>Marin: The author left, but I have forever lost you...</span>";
             }
             if (cinematicTimer === 650) {
                 quoteBox.style.display = 'none';
@@ -482,7 +482,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         else if (cinematicPhase === 4) {
             sfx('win');
             document.getElementById('main-menu').style.display = 'flex';
-            document.querySelector('.menu-title').innerHTML = "织梦岛 DX<br><span style='color:#f1c40f'>TRUE ENDING</span>";
+            document.querySelector('.menu-title').innerHTML = "Link's awakening <br><span style='color:#f1c40f'>TRUE ENDING(Auther: hacking)</span>";
             gameState = 'menu';
         }
     }
