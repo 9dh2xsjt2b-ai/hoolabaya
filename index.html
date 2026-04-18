@@ -382,7 +382,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         } else if (currentLevel === 9) {
             player.maxHp++; player.hp = player.maxHp; updateHearts();
             boss.shadowPhase++;
-            if (boss.shadowPhase > 6) levelComplete("The shadopws had beed defeted! /n A wild Pikachu appeared", 10);
+            if (boss.shadowPhase > 6) levelComplete("The shadopws had beed defeted! A wild Pikachu appeared", 10);
             else { boss.state = 'phase_transition'; boss.targetX = 128; boss.targetY = 96; boss.invuln = 9999; }
         } else {
             levelComplete(`level ${currentLevel} complete！\n Entering level ${currentLevel+1} ...`, currentLevel + 1);
@@ -398,7 +398,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         player.hp = player.maxHp;
         updateHearts();
         
-        transText.innerText = msg + "\n\nYou have obtained a Heart Container! Your health has been fully restored！";
+        transText.innerText = msg + "You have obtained a Heart Container! Your health has been fully restored！";
         transOverlay.style.display = 'flex';
         setTimeout(() => {
             transOverlay.style.display = 'none';
@@ -410,7 +410,7 @@ Multiplayer is enabled! All players share Boss damage progress.
 
     function triggerGameOver() {
         gameState = 'transition';
-        transText.innerText = "Game over...\nToo many game, Too less time";
+        transText.innerText = "Game over...Too many game, Too less time";
         transOverlay.style.display = 'flex';
         setTimeout(() => {
             transOverlay.style.display = 'none';
