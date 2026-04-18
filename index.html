@@ -311,7 +311,7 @@ Multiplayer is enabled! All players share Boss damage progress.
                                 }
                             }
                         });
-                        document.getElementById('multiplayer-status').innerText = `在线玩家: ${Object.keys(otherPlayers).length + 1}`;
+                        document.getElementById('multiplayer-status').innerText = `Player online: ${Object.keys(otherPlayers).length + 1}`;
                     }, (err) => console.error("Sync Error:", err));
 
                     const bossRef = collection(db, 'artifacts', appId, 'public', 'data', 'bossState');
@@ -455,7 +455,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         else if (cinematicPhase === 3) {
             if (cinematicTimer === 1) {
                 transOverlay.style.display = 'flex';
-                transText.innerText = "一段时间后...";
+                transText.innerText = "A long time passed...";
             }
             if (cinematicTimer === 120) {
                 transOverlay.style.display = 'none';
