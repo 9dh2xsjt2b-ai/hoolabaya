@@ -263,7 +263,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         8: { intro: ["CRACKLE-FROOOWSH! You're finished! I will never let you play the Instruments of the Sirens!"], hit: [], death: [] },
         9: { intro: [], hit: [], death: [] },
         10: { intro: ["Pika pika! (Sparks fly as the electric mouse appears!)"], hit: ["Piiiika! (That hurts!)"], death: ["Pika-chuuuuuu... (Faints...)"] },
-        11: { intro: ["You defeated them all? They are just my guards, I'm the master, and you are nothing, prepare yourselves!!! I can get you in a flesh and you can't stop been perish. just give up and stop fight, YOU ALREADY LOST YOUR LIFE!!!. If you still don't give up then just DIE! DIE! DIE! You CAN'T WIN so DON'T EVEN TRY!!! PREPARE TO DIE!!!!!! "], hit: [], death: []}
+        11: { intro: ["You defeated them all? They are just my guards, I'm the master, and you are nothing, prepare yourselves!!!"], hit: [], death: []}
     };
 
     function playQuote(lvl, type) {
@@ -382,7 +382,7 @@ Multiplayer is enabled! All players share Boss damage progress.
         } else if (currentLevel === 9) {
             player.maxHp++; player.hp = player.maxHp; updateHearts();
             boss.shadowPhase++;
-            if (boss.shadowPhase > 6) levelComplete("The shadopws had beed defeted! A wild Pikachu appeared", 10);
+            if (boss.shadowPhase > 6) levelComplete("The shadows had beed defeted! A wild Pikachu appeared", 10);
             else { boss.state = 'phase_transition'; boss.targetX = 128; boss.targetY = 96; boss.invuln = 9999; }
         } else {
             levelComplete(`level ${currentLevel} complete！\n Entering level ${currentLevel+1} ...`, currentLevel + 1);
