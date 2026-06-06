@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Link's Awakening DX: Multiplayer Gauntlet Final 27.2(round 2)</title>
+    <title> Multiplayer Gauntlet Final 27.3</title>
     <style>
         body{margin:0;background:#000;color:#fff;font-family:'Courier New',Courier,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden;user-select:none;-webkit-user-select:none;}
         #game-wrapper{position:relative;border:15px solid #4a4a4a;border-radius:10px 10px 30px 10px;box-shadow:inset 0 0 10px #000,0 0 30px rgba(0,255,255,0.2);background:#000;padding:10px;max-width:100%;box-sizing:border-box;}
@@ -199,16 +199,27 @@
         8: { intro: ["CRACKLE! I won't let you play the Instruments!"], hit: [], death: [] },
         9: { intro: [], hit: [], death: [] },
         10: { intro: ["Pika pika! (A wild electric mouse appears!)"], hit: ["Pika! (Ouch!)"], death: ["Pika-chu... (Fainted)"] },
-        11: { intro: ["You defeated my guards? Good. But I am the Creator."], hit: [], death: [] },
-        12: { intro: ["ERROR: WIND FISH OVERRIDDEN. COMMENCING DELETION!"], electric_warn: ["! WARNING: HIGH VOLTAGE ! JUMP !"], hit: ["INVALID ATTACK!"], death: [], enraged: ["HAHAHA! YOU THINK YOU CAN WIN?! I WILL BURN EVERYTHING!"] }
+        11: { intro: ["You think beat me is as easy as those guys?? I am the Creator!"], hit: [], death: [] },
+        12: { intro: ["ERROR: WIND FISH OVERRIDDEN. COMMENCING DELETION!"], electric_warn: ["! WARNING: HIGH VOLTAGE ! JUMP !"], hit: ["kill your self!"], death: [], enraged: ["MWAHAHAHA! YOU THINK YOU CAN WIN?! YOU ARE TOO WEAK!"] }
     };
 
     const AUTHOR_TEXTS = [
-        "I can get you in a flesh and you can't stop been perish. just give up and stop fight,",
-        "That's why it's round 2!!!.",
-        "If you still don't give up then just DIE! DIE! DIE!",
-        "You CAN'T WIN so DON'T EVEN TRY!!!",
-        "PREPARE TO DIE!!!!!!"
+        "error:player are hacking!",
+        "Why you are still there?",
+        "Too slow!",
+        "You CAN'T WIN!",
+        "PREPARE TO DIE!",
+        "Just give up!",
+        "I am the creator!",
+        "Waring:players are breaking the game!",
+        "error:this file is too big to load",
+        "What a joke...",
+        "you are a fool!",
+        "you are making me angry!",
+        "I am god!",
+        "You are so weak!",
+        "The sword in your hand is shaking!",
+        "You are scared, wahahahaha!"
     ];
 
     const MUSIC_PROFILES = {
@@ -626,7 +637,7 @@
 
         if(boss.shadowPhase === 1) { setHP(3); boss.radius = 20; boss.state = 'gel_idle'; boss.vx = 0; boss.vy = 0; } 
         else if(boss.shadowPhase === 2) { setHP(4); boss.state = 'agahnim_prep'; boss.targetX = 160; boss.targetY = 60; boss.radius = 16; } 
-        else if(boss.shadowPhase === 3) { setHP(8); boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 2.5; boss.state = 'moldorm_move'; boss.turnDir = 1; boss.turnSpeed = 0.08; boss.segments = []; boss.numSegments = 7; boss.segmentRadius = 14; for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y}); boss.history = []; } 
+        else if(boss.shadowPhase === 3) { setHP(12); boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 2.5; boss.state = 'moldorm_move'; boss.turnDir = 1; boss.turnSpeed = 0.08; boss.segments = []; boss.numSegments = 7; boss.segmentRadius = 14; for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y}); boss.history = []; } 
         else if(boss.shadowPhase === 4) { setHP(16); boss.state = 'ganon_move'; boss.radius = 20; boss.trident = null; } 
         else if(boss.shadowPhase === 5) { setHP(1); boss.state = 'lanmola_move'; boss.radius = 12; boss.vx = 4; boss.vy = 3; } 
         else if(boss.shadowPhase === 6) { setHP(12); boss.state = 'dethi_swing'; boss.radius = 24; boss.eyeOpen = false; boss.armAngle = 0;  }
@@ -1334,7 +1345,7 @@
                     } 
                     ctx.save(); ctx.translate(boss.x|0, boss.y|0); 
                 }
-                else if (boss.shadowPhase === 4) { ctx.fillStyle = "#115"; ctx.fillRect(-boss.radius|0, -boss.radius|0, boss.radius*2|0, boss.radius*2|0); ctx.fillStyle = "#f00"; ctx.fillRect(-4,-4,8,8); if (boss.trident) { ctx.restore(); ctx.fillStyle = "#ff0"; ctx.fillRect((boss.trident.x-5)|0, (boss.trident.y-5)|0, 10, 10); ctx.save(); ctx.translate(boss.x|0, boss.y|0); } }
+                else if (boss.shadowPhase === 4) { ctx.fillStyle = "#111"; ctx.fillRect(-boss.radius|0, -boss.radius|0, boss.radius*2|0, boss.radius*2|0); ctx.fillStyle = "#f00"; ctx.fillRect(-4,-4,8,8); if (boss.trident) { ctx.restore(); ctx.fillStyle = "#ff0"; ctx.fillRect((boss.trident.x-5)|0, (boss.trident.y-5)|0, 10, 10); ctx.save(); ctx.translate(boss.x|0, boss.y|0); } }
                 else if (boss.shadowPhase === 5) { ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); }
                 else if (boss.shadowPhase === 6) { 
                     ctx.fillStyle = "#111"; ctx.beginPath(); ctx.arc(0,0,boss.radius|0,0,Math.PI*2); ctx.fill(); 
@@ -1466,20 +1477,17 @@
             }
             ctx.restore();
         }
-
         if (marin) {
             ctx.save(); ctx.translate(marin.x|0, marin.y|0);
             ctx.fillStyle = "#ff9ff3"; ctx.fillRect(-6, -10, 12, 12); 
             ctx.fillStyle = "#e67e22"; ctx.fillRect(-5, -12, 10, 6); 
             ctx.restore();
         }
-
         if (boomerang.active) {
             ctx.save(); ctx.translate(boomerang.x|0, (boomerang.y - player.z)|0); ctx.rotate(Date.now() / 50);
             ctx.fillStyle = '#3498db'; ctx.beginPath(); ctx.moveTo(-6, -6); ctx.lineTo(6, -6); ctx.lineTo(0, 6); ctx.fill();
             ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke(); ctx.restore();
         }
-
         if (player.trident.state !== 'held') {
             ctx.save();
             ctx.translate(player.trident.x, player.trident.y - (player.trident.state === 'thrown' ? player.z : 0));
@@ -1493,36 +1501,28 @@
             ctx.fillRect(8, -1, 6, 2);   
             ctx.restore();
         }
-
         if (hookshot.active) {
             ctx.strokeStyle = "#8e44ad"; ctx.lineWidth = 2;
             ctx.beginPath(); ctx.moveTo(player.x|0, (player.y - player.z)|0); ctx.lineTo(hookshot.x|0, hookshot.y|0); ctx.stroke();
             ctx.fillStyle = "#9b59b6"; ctx.fillRect((hookshot.x - 3)|0, (hookshot.y - 3)|0, 6, 6);
         }
-
         // Player
         if (player.state === 'dead' || player.invuln % 4 < 2) {
             if (player.z > 0 && currentLevel !== 4 && currentLevel !== 9 && currentLevel !== 10 && currentLevel !== 11 && currentLevel !== 12) { ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.beginPath(); ctx.ellipse(player.x|0, player.y|0, 8, 4, 0, 0, Math.PI*2); ctx.fill(); }
-            ctx.save(); ctx.translate(player.x|0, (player.y - player.z)|0); 
-            
+            ctx.save(); ctx.translate(player.x|0, (player.y - player.z)|0);             
             if (player.state === 'dead') {
                 ctx.rotate(-Math.PI / 2); ctx.translate(-6, 6); 
             }
-
-            if (player.freezeTimer > 0 && player.state !== 'dead') { ctx.fillStyle = "rgba(0, 255, 255, 0.6)"; ctx.fillRect(-10, -12, 20, 16); }
-            
+            if (player.freezeTimer > 0 && player.state !== 'dead') { ctx.fillStyle = "rgba(0, 255, 255, 0.6)"; ctx.fillRect(-10, -12, 20, 16); }            
             if (player.isCharging && player.chargeTimer >= 45 && player.state !== 'dead') {
                 ctx.fillStyle = Math.floor(Date.now() / 50) % 2 === 0 ? "#f1c40f" : "#e74c3c";
             } else {
                 ctx.fillStyle = player.state === 'dead' ? "#888" : "#2ecc71"; 
-            }
-            
+            }            
             ctx.fillRect(-6, -8, 12, 10);
             ctx.fillStyle = player.state === 'dead' ? "#aaa" : "#f1c40f"; 
-            ctx.fillRect(-4, -4, 8, 6);
-            
-            if (player.carrying && player.state !== 'dead') { ctx.fillStyle = '#7f8c8d'; ctx.beginPath(); ctx.arc(0, -14, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke(); }
-            
+            ctx.fillRect(-4, -4, 8, 6);            
+            if (player.carrying && player.state !== 'dead') { ctx.fillStyle = '#7f8c8d'; ctx.beginPath(); ctx.arc(0, -14, boss.radius|0, 0, Math.PI*2); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#000'; ctx.stroke(); }            
             if (player.state === 'attack') { 
                 ctx.fillStyle = "#ecf0f1"; ctx.strokeStyle = "#000"; ctx.lineWidth = 1; let sx = 0, sy = 0, sw = 0, sh = 0; 
                 if (player.dir === 'up') { sx = -2; sy = -20; sw = 4; sh = 12; } 
@@ -1557,7 +1557,6 @@
             }
             ctx.restore();
         }
-
         if (currentLevel === 11 && boss && boss.taunts && boss.taunts.length > 0 && boss.state !== 'cinematic') {
             ctx.save(); ctx.font = "bold 14px 'Courier New'"; ctx.textAlign = "center";
             let tp = boss.authorTextPhase || 0;
@@ -1573,22 +1572,19 @@
                 ctx.fillText(t.text, jx, jy); 
             });
             ctx.restore();
-        }
-        
+        }        
         ctx.restore(); 
     }
-
     let lastTime = 0;
     function gameLoop(timestamp) { 
         if (timestamp - lastTime >= 1000 / FPS) { 
             if (gameState === 'playing') { update(); draw(); } 
             else if (gameState === 'transition') { draw(); }
-            else if (gameState === 'cinematic') { updateCinematic(); draw(); }
+            else if (gameState === 'cinematic') { updateCinematic(); draw(); }            
             lastTime = timestamp; 
         } 
         requestAnimationFrame(gameLoop); 
-    }
-    
+    }    
     requestAnimationFrame(gameLoop);
 </script>
 </body>
