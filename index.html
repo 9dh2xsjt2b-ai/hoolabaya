@@ -185,7 +185,7 @@
         { name: "Moldorm", hp: 4 }, { name: "Genie", hp: 5 }, { name: "Slime Eye", hp: 12 },
         { name: "Angler Fish", hp: 12 }, { name: "Slime Eel", hp: 5 }, { name: "Facade", hp: 5 },
         { name: "Evil Eagle", hp: 14 }, { name: "Hot Head", hp: 16 }, { name: "Shadow Nightmares", hp: 0 },
-        { name: "Pikachu", hp: 18 }, { name: "The Author", hp: 24 }, { name: "Creator & Wind Fish", hp: 8 } 
+        { name: "Pikachu", hp: 18 }, { name: "The Author", hp: 24 }, { name: "Creator & Wind Fish", hp: 10 } 
     ];
 
     const QUOTES = {
@@ -400,7 +400,7 @@
 
     function triggerTrueFinal() {
         boss.state = 'true_final';
-        boss.hp = 8; boss.maxHp = 8;
+        boss.hp = 10; boss.maxHp = 10;
         boss.invuln = 60; 
         boss.lavaTimer = 800; boss.lavaActive = 0;
         boss.pikaTimer = 500; boss.fallingPikachus = [];
