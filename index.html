@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> Multiplayer Gauntlet Final 28.0</title>
+    <title> Multiplayer Gauntlet Final 28.1</title>
     <style>
         body{margin:0;background:#000;color:#fff;font-family:'Courier New',Courier,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden;user-select:none;-webkit-user-select:none;}
         #game-wrapper{position:relative;border:15px solid #4a4a4a;border-radius:10px 10px 30px 10px;box-shadow:inset 0 0 10px #000,0 0 30px rgba(0,255,255,0.2);background:#000;padding:10px;max-width:100%;box-sizing:border-box;}
@@ -219,24 +219,22 @@
         "I am god!",
         "You are so weak!",
         "The sword in your hand is shaking!",
-        "You are scared, wahahahaha!"，
-        "GET OUT Of THIS GAME!!!"
+        "You are scared, wahahahaha!"
     ];
 
     const MUSIC_PROFILES = {
-        1: { notes: [220, 220, 293, 220, 220, 311, 220, 220, 349, 311, 293, 233, 220, 220, 440, 415, 392, 349, 293, 311, 293, 311, 110, 116, 220], type: 'sawtooth', speed: 80 }
-        2: { notes: [233, 233, 220, 233, 466, 440, 233, 233, 247, 233, 494, 466, 233, 247, 261, 277, 311, 293, 311, 293, 233, 233, 116, 110, 233], type: 'sawtooth', speed: 95 }
-        3: { notes: [165, 165, 175, 165, 330, 311, 165, 165, 175, 165, 440, 415, 165, 175, 196, 175, 330, 349, 330, 311, 165, 165, 131, 123, 165], type: 'sawtooth', speed: 115 }
-        4: { notes: [261, 277, 261, 349, 392, 349, 523, 494, 261, 277, 587, 554, 261, 261, 311, 293, 220, 233, 440, 415, 261, 277, 131, 139, 261], type: 'sawtooth', speed: 85 }
-        5: { notes: [196, 196, 220, 196, 392, 370, 196, 196, 440, 415, 196, 220, 233, 220, 523, 494, 196, 196, 311, 293, 220, 196, 110, 116, 196], type: 'sawtooth', speed: 90 }
-        6: { notes: [147, 147, 110, 147, 220, 233, 116, 110, 587, 147, 147, 110, 440, 415, 116, 110, 293, 311, 293, 311, 147, 110, 659, 622, 147, 110], type: 'sawtooth', speed: 110 }
-        7: { notes: [330, 311, 330, 311, 220, 233, 220, 233, 293, 293, 349, 293, 392, 440, 466, 415, 330, 311, 311, 311, 349, 165, 155, 293, 349, 587, 554, 110, 116, 110], type: 'sawtooth', speed: 95 }
-        8: { notes: [220, 220, 233, 220, 220, 233, 311, 293, 220, 220, 233, 440, 415, 392, 349, 293], type: 'sawtooth', speed: 90 },
-        9: { notes: [293, 293, 349, 293, 392, 293, 349, 311, 311, 349, 311, 392, 311, 349, 293, 293, 440, 415, 392, 349, 293, 349, 392, 440, 587, 523, 440, 392, 349, 311, 293], type: 'sawtooth', speed: 100 }
-        10: { notes: [293, 293, 349, 293, 392, 293, 440, 415, 392, 349, 293, 293, 277, 261, 247, 220, 220, 261, 293, 329, 349, 392, 440, 494, 523, 587, 554, 523, 494], type: 'sawtooth', speed: 80 }
-        11: { notes: [220, 233, 220, 233, 311, 293, 311, 293, 220, 233, 247, 261, 277, 293, 311, 329, 440, 415, 440, 415, 311, 293, 220, 110], type: 'sawtooth', speed: 65 },
-        12: { notes: [175, 175, 175, 175, 185, 196, 208, 220, 233, 233, 233, 233, 220, 208, 196, 185, 349, 349, 330, 311, 294, 294, 311, 330, 175, 185, 196, 208, 220, 233, 247, 262, 349, 330, 311, 294, 440, 415, 392, 370, 349, 349, 349, 349, 175, 175, 175, 175], type: 'sawtooth', speed: 75 }
-
+        1: { notes: [220, 220, 293, 220, 220, 311, 220, 220, 349, 311, 293, 233, 220, 220, 440, 415, 392, 349, 293, 311, 293, 311, 110, 116, 220], type: 'sawtooth', speed: 80 }, 
+        2: { notes: [233, 233, 220, 233, 466, 440, 233, 233, 247, 233, 494, 466, 233, 247, 261, 277, 311, 293, 311, 293, 233, 233, 116, 110, 233], type: 'sawtooth', speed: 180 },
+        3: { notes: [196, 220, 196, 164], type: 'sawtooth', speed: 250 },
+        4: { notes: [392, 440, 493, 523], type: 'sine', speed: 150 },
+        5: { notes: [164, 196, 220, 246], type: 'square', speed: 220 },
+        6: { notes: [130, 146, 164, 130], type: 'sawtooth', speed: 300 },
+        7: { notes: [523, 587, 659, 698, 783], type: 'triangle', speed: 120 },
+        8: { notes: [392, 349, 329, 293], type: 'sawtooth', speed: 160 },
+        9: { notes: [220, 196, 220, 246, 261], type: 'square', speed: 180 },
+        10:{ notes: [880, 988, 1046, 1174], type: 'square', speed: 100 },
+        11:{ notes: [659, 698, 784, 698, 659, 698, 880, 988], type: 'sawtooth', speed: 110 },
+        12:{ notes: [200, 250, 300, 250], type: 'sawtooth', speed: 120 }
     };
 
     // --- PACKS & GACHA SYSTEM ---
@@ -438,7 +436,7 @@
     }
 
     function triggerGameOver() {
-        gameState = 'transition'; transText.innerText = "Game Over...\n is dead!"; transOverlay.style.display = 'flex';
+        gameState = 'transition'; transText.innerText = "Game Over...\nThe Wind Fish slumbers on."; transOverlay.style.display = 'flex';
         setTimeout(() => { transOverlay.style.display = 'none'; player.hp = player.maxHp; initBoss(); gameState = 'playing'; }, 3000);
     }
 
@@ -601,15 +599,15 @@
         } else if (currentLevel === 3) {
             boss.x = 160; boss.y = 100; boss.state = 'combined'; boss.radius = 24; boss.ramHp = 4; boss.eyes = []; boss.vx = 0.8; boss.vy = 0.5; 
         } else if (currentLevel === 4) {
-            boss.state = 'swim'; boss.timer = 100; boss.chargeCooldown = 0; boss.x = 240; boss.y = 120; boss.radius = 26; boss.lure = {x: 0, y: 0, radius: 8}; boss.vx = 1; boss.vy = 0; boss.fairies = []; player.dir = 'right';
+            boss.state = 'swim'; boss.timer = 120; boss.chargeCooldown = 0; boss.x = 240; boss.y = 120; boss.radius = 26; boss.lure = {x: 0, y: 0, radius: 8}; boss.vx = 1; boss.vy = 0; boss.fairies = []; player.dir = 'right';
         } else if (currentLevel === 5) {
             boss.state = 'hidden'; boss.timer = 60; boss.radius = 12; boss.tailAngle = 0; boss.holes = [{x: 60, y: 60, dx: 1, dy: 1}, {x: 260, y: 60, dx: -1, dy: 1}, {x: 60, y: 180, dx: 1, dy: -1}, {x: 260, y: 180, dx: -1, dy: -1}]; boss.holeIndex = 0;
         } else if (currentLevel === 6) {
             boss.state = 'hidden'; boss.timer = 120; boss.x = 160; boss.y = 120; boss.radius = 36; boss.alpha = 0; boss.tiles = []; for (let i = 0; i < 8; i++) boss.tiles.push({x: 50 + (i % 4) * 70, y: 60 + Math.floor(i / 4) * 90, z: 0, state: 'idle', timer: i * 80 + 90, vx: 0, vy: 0}); boss.holes = []; boss.holeTimer = 90;
         } else if (currentLevel === 7) {
-            boss.state = 'soar'; boss.timer = 80; boss.x = 350; boss.y = 50; boss.radius = 22; boss.vx = -2; boss.vy = 0;
+            boss.state = 'soar'; boss.timer = 120; boss.x = 350; boss.y = 50; boss.radius = 22; boss.vx = -2; boss.vy = 0;
         } else if (currentLevel === 8) {
-            boss.state = 'lava_hide'; boss.timer = 120; boss.x = 160; boss.y = 120; boss.radius = 16; boss.vx = 0; boss.vy = 0;
+            boss.state = 'lava_hide'; boss.timer = 90; boss.x = 160; boss.y = 120; boss.radius = 16; boss.vx = 0; boss.vy = 0;
         } else if (currentLevel === 9) {
             boss.shadowPhase = 1; setupShadowPhase();
         } else if (currentLevel === 10) {
@@ -639,7 +637,7 @@
 
         if(boss.shadowPhase === 1) { setHP(3); boss.radius = 20; boss.state = 'gel_idle'; boss.vx = 0; boss.vy = 0; } 
         else if(boss.shadowPhase === 2) { setHP(4); boss.state = 'agahnim_prep'; boss.targetX = 160; boss.targetY = 60; boss.radius = 16; } 
-        else if(boss.shadowPhase === 3) { setHP(12); boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 5; boss.state = 'moldorm_move'; boss.turnDir = 1; boss.turnSpeed = 0.16; boss.segments = []; boss.numSegments = 7; boss.segmentRadius = 14; for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y}); boss.history = []; } 
+        else if(boss.shadowPhase === 3) { setHP(12); boss.angle = 0; boss.speed = 2.5; boss.baseSpeed = 2.5; boss.state = 'moldorm_move'; boss.turnDir = 1; boss.turnSpeed = 0.08; boss.segments = []; boss.numSegments = 7; boss.segmentRadius = 14; for(let i=0; i<boss.numSegments; i++) boss.segments.push({x: boss.x, y: boss.y}); boss.history = []; } 
         else if(boss.shadowPhase === 4) { setHP(16); boss.state = 'ganon_move'; boss.radius = 20; boss.trident = null; } 
         else if(boss.shadowPhase === 5) { setHP(1); boss.state = 'lanmola_move'; boss.radius = 12; boss.vx = 4; boss.vy = 3; } 
         else if(boss.shadowPhase === 6) { setHP(12); boss.state = 'dethi_swing'; boss.radius = 24; boss.eyeOpen = false; boss.armAngle = 0;  }
@@ -791,7 +789,7 @@
             }
         } else {
             if (boss.timer % 20 === 0) {
-                screenShake = 12; 
+                screenShake = 8; 
                 let ang = Math.atan2(player.y - boss.y, player.x - boss.x);
                 projectiles.push({x: boss.x, y: boss.y, vx: Math.cos(ang)*6, vy: Math.sin(ang)*6, type: 'author_arrow', life: 100});
             }
@@ -851,14 +849,14 @@
             } else {
                 boss.lavaTimer--;
                 if (boss.lavaTimer <= 0) {
-                    boss.lavaActive = 40; boss.lavaTimer = 800;
-                    screenShake = 20; sfx('shoot');
+                    boss.lavaActive = 80; boss.lavaTimer = 180;
+                    screenShake = 10; sfx('shoot');
                 }
             }
 
             boss.pikaTimer--;
             if (boss.pikaTimer <= 0) {
-                boss.pikaTimer = 900;
+                boss.pikaTimer = 600;
                 boss.fallingPikachus.push({ x: 40 + Math.random() * 240, y: 40 + Math.random() * 160, z: 200, vz: 0, hp: 6, active: true, radius: 12, timer: 0 });
             }
 
