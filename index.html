@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> Multiplayer Gauntlet Final 29.7</title>
+    <title> Multiplayer Gauntlet Final 30.0</title>
     <style>
         body{margin:0;background:#000;color:#fff;font-family:'Courier New',Courier,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden;user-select:none;-webkit-user-select:none;}
         #game-wrapper{position:relative;border:15px solid #4a4a4a;border-radius:10px 10px 30px 10px;box-shadow:inset 0 0 10px #000,0 0 30px rgba(0,255,255,0.2);background:#000;padding:10px;max-width:100%;box-sizing:border-box;}
@@ -185,7 +185,7 @@
         { name: "Moldorm", hp: 4 }, { name: "Genie", hp: 5 }, { name: "Slime Eye", hp: 12 },
         { name: "Angler Fish", hp: 12 }, { name: "Slime Eel", hp: 5 }, { name: "Facade", hp: 5 },
         { name: "Evil Eagle", hp: 14 }, { name: "Hot Head", hp: 16 }, { name: "Shadow Nightmares", hp: 0 },
-        { name: "Pikachu", hp: 18 }, { name: "The Author", hp: 24 }, { name: "Creator & Wind Fish", hp: 1 } 
+        { name: "Pikachu", hp: 18 }, { name: "The Author", hp: 24 }, { name: "Creator & Wind Fish", hp: 8 } 
     ];
 
     const QUOTES = {
@@ -400,10 +400,10 @@
 
     function triggerTrueFinal() {
         boss.state = 'true_final';
-        boss.hp = 30; boss.maxHp = 30;
+        boss.hp = 8; boss.maxHp = 8;
         boss.invuln = 60; 
-        boss.lavaTimer = 180; boss.lavaActive = 0;
-        boss.pikaTimer = 600; boss.fallingPikachus = [];
+        boss.lavaTimer = 800; boss.lavaActive = 0;
+        boss.pikaTimer = 500; boss.fallingPikachus = [];
         boss.author = { x: 160, y: 120, z: 100, vz: 0, state: 'float' }; 
         bossNameEl.innerText = "BOSS: The Creator (Enraged)";
         updateBossUI();
