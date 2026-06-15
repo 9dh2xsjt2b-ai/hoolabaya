@@ -1570,7 +1570,7 @@
             }
             ctx.restore();
         }
-        if (currentLevel === 1 && boss && boss.taunts && boss.taunts.length > 0 && boss.state !== 'cinematic') {
+        if (currentLevel === 11 && boss && boss.taunts && boss.taunts.length > 0 && boss.state !== 'cinematic') {
             ctx.save(); ctx.font = "bold 14px 'Courier New'"; ctx.textAlign = "center";
             let tp = boss.authorTextPhase || 0;
             let ct = AUTHOR_TEXTS[tp % AUTHOR_TEXTS.length];
