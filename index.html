@@ -219,7 +219,18 @@
         "I am god!",
         "You are so weak!",
         "The sword in your hand is shaking!",
-        "You are scared, wahahahaha!"
+        "You are scared, wahahahaha!",
+        "No one could ever stop me, Mwahahahahaha!",
+        "Watch out, Mickey Peng",
+        "How?!",
+        "well?",
+        "What will you get if you beat the game?! Nothing!",
+        "I ganna kill you my self!",
+        "Will you stop?!",
+        "You will die so don't even try!",
+        "What the-?!",
+        "Stop hacking, face me yourself!",
+        "F***"
     ];
 
     const MUSIC_PROFILES = {
@@ -436,7 +447,7 @@
     }
 
     function triggerGameOver() {
-        gameState = 'transition'; transText.innerText = "Game Over...\nThe Wind Fish slumbers on."; transOverlay.style.display = 'flex';
+        gameState = 'transition'; transText.innerText = "Game Over... You are dead!"; transOverlay.style.display = 'flex';
         setTimeout(() => { transOverlay.style.display = 'none'; player.hp = player.maxHp; initBoss(); gameState = 'playing'; }, 3000);
     }
 
