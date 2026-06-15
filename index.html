@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title> Multiplayer Gauntlet Final 30.*</title>
+    <title> Boss Gauntlet Final 30.4</title>
     <style>
         body{margin:0;background:#000;color:#fff;font-family:'Courier New',Courier,monospace;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;overflow:hidden;user-select:none;-webkit-user-select:none;}
         #game-wrapper{position:relative;border:15px solid #4a4a4a;border-radius:10px 10px 30px 10px;box-shadow:inset 0 0 10px #000,0 0 30px rgba(0,255,255,0.2);background:#000;padding:10px;max-width:100%;box-sizing:border-box;}
@@ -66,7 +66,7 @@
         <input type="text" id="username-input" placeholder="Username" maxlength="12">
         <input type="password" id="password-input" placeholder="Password">
         <button id="login-btn" class="btn">Login / Register</button>
-        <p style="font-size:12px;color:#888;">Will auto-register if account doesn't exist</p>
+        <p style="font-size:12px;color:#888;">For the ones who just want to battle bosses.</p>
     </div>
 
     <div id="main-menu" class="overlay" style="display:none;">
@@ -475,7 +475,7 @@
             if (cinematicTimer === 1) { quoteBox.innerHTML = "<span style='color:#ff0000; font-weight:bold; font-size:16px;'>Creator: HAHAHA! YOU CANNOT WIN! I WILL BURN EVERYTHING!</span>"; quoteBox.style.display = 'block'; sfx('win'); }
             if (cinematicTimer > 60 && cinematicTimer % 5 === 0) { projectiles.push({x: Math.random()*320, y: Math.random()*240, vx:0, vy:0, type:'author_fire', life:60}); screenShake = 20; }
             if (cinematicTimer === 180) { player.hp = 0; updateHearts(); player.state = 'dead'; }
-            if (cinematicTimer === 300) { quoteBox.style.display = 'none'; transOverlay.style.display = 'flex'; transText.innerHTML = "<span style='color:red;'>EVERYTHING BURNED...<br>BAD ENDING</span>"; }
+            if (cinematicTimer === 300) { quoteBox.style.display = 'none'; transOverlay.style.display = 'flex'; transText.innerHTML = "<span style='color:red;'>Not every game have good ending...NOT every boss could be defete.<br>Now no one could ever stop me, MWAHAHAHAHAHA!.</span>"; }
         }
     }
 
